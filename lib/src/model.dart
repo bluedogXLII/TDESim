@@ -1,6 +1,11 @@
+import 'package:rational/rational.dart';
+
 class Hero {
   /// vitality: Le
   final int vi;
+
+  ///wound threshold: WS
+  final int wt;
 
   /// armor rating: RS
   final int ar;
@@ -14,7 +19,7 @@ class Hero {
   /// parry value: PA
   final int pa;
 
-  Hero(this.vi, this.ar, this.hp, this.at, this.pa);
+  Hero(this.vi, this.wt, this.ar, this.hp, this.at, this.pa);
 }
 
 class HalfACombatRound {
@@ -22,10 +27,13 @@ class HalfACombatRound {
   final int attackerVp, defenderVp;
   final int attackerPenalty, defenderPenalty;
   final int attackerWounds, defenderWounds;
+  final int lastFeint, lastForcefulBlow, lastImprovedParry;
+  final Rational probability;
+  final int depth;
 
-  Map<HalfACombatRound, double> get transitions =>
+  Map<HalfACombatRound, Rational> get transitions =>
       _transitions ??= _computeTransitions();
-  Map<HalfACombatRound, double> _transitions;
+  Map<HalfACombatRound, Rational> _transitions;
 
   HalfACombatRound(
       this.attacker,
@@ -35,10 +43,15 @@ class HalfACombatRound {
       this.attackerPenalty,
       this.defenderPenalty,
       this.attackerWounds,
-      this.defenderWounds);
+      this.defenderWounds,
+      this.lastFeint,
+      this.lastForcefulBlow,
+      this.lastImprovedParry,
+      this.probability,
+      this.depth);
 
-  Map<HalfACombatRound, double> _computeTransitions() {
-    final result = <HalfACombatRound, double>{};
+  Map<HalfACombatRound, Rational> _computeTransitions() {
+    final result = <HalfACombatRound, Rational>{};
 
     return result;
   }
