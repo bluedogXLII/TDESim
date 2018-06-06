@@ -1,3 +1,4 @@
-name: TDESim
+name: tde_sim
 dependencies:
+  meta: any
   rational: "^0.2.0"
