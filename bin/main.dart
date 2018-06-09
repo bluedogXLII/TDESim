@@ -18,7 +18,7 @@ void main() {
     //print(state);
     visitedStates++;
     if (state.depth == depth) {
-      print(state);
+      //print(state); //the printing takes too much time
     } else {
       queue.addAll(state.transitions.keys);
     }
@@ -26,3 +26,8 @@ void main() {
   watch.stop();
   print('Visited $visitedStates in ${watch.elapsedMilliseconds}ms');
 }
+//tested 9.6. on i7-4790, 3,6GHz;
+//depth 5: 135/ms   145ms
+//depth 6: 179/ms   765ms
+//depth 7: 180/ms  5326ms
+//depth 8: 151/ms 44533ms

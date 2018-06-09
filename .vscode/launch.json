@@ -9,6 +9,12 @@
       "program": "bin/main.dart",
       "request": "launch",
       "type": "dart"
+    },
+    {
+      "name": "limitTest.dart",
+      "program": "bin/limitTest.dart",
+      "request": "launch",
+      "type": "dart"
     }
   ]
 }
