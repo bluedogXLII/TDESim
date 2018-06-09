@@ -1,8 +1,8 @@
 void main() {
-  for (double a = 1.0; a <= 19.0; a++)
-    for (double p = 1.0; p <= 19.0; p++)
-      for (double s = 3.5; s <= 20.5; s++) {
-        double n = 1 / 400 * a * p * s;
+  for (var a = 1.0; a <= 19.0; a++)
+    for (var p = 1.0; p <= 19.0; p++)
+      for (var s = 3.5; s <= 20.5; s++) {
+        final n = 1 / 400 * a * p * s;
         //a-w-f=1
         if (sawf(a, p, s) > n &&
             0 <= wawf(a, p, s) &&
@@ -11,23 +11,23 @@ void main() {
             fawf(a, p, s) <= 19 - p &&
             (sawf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
             (sawf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1)) {
-          var sb = new StringBuffer();
-          sb.writeAll([
-            'a: ',
-            a,
-            '; P. ',
-            p,
-            '; s: ',
-            s,
-            ', w: ',
-            wawf(a, p, s),
-            ', f: ',
-            fawf(a, p, s),
-            ' , sawf: ',
-            sawf(a, p, s),
-            ' , n:',
-            n
-          ]);
+          final sb = new StringBuffer()
+            ..writeAll([
+              'a: ',
+              a,
+              '; P. ',
+              p,
+              '; s: ',
+              s,
+              ', w: ',
+              wawf(a, p, s),
+              ', f: ',
+              fawf(a, p, s),
+              ' , sawf: ',
+              sawf(a, p, s),
+              ' , n:',
+              n
+            ]);
           print(sb);
         }
         //p-f=1a
@@ -37,23 +37,23 @@ void main() {
             a - wpf(a, p, s) - fpf(a, p, s) >= 1 &&
             (spf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
             (spf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1)) {
-          var sb = new StringBuffer();
-          sb.writeAll([
-            'a: ',
-            a,
-            ' , p: ',
-            p,
-            ' , s: ',
-            s,
-            ' , w: ',
-            wpf(a, p, s),
-            ' , f: ',
-            fpf(a, p, s),
-            ' , spf: ',
-            spf(a, p, s),
-            ' , n:',
-            n
-          ]);
+          final sb = new StringBuffer()
+            ..writeAll([
+              'a: ',
+              a,
+              ' , p: ',
+              p,
+              ' , s: ',
+              s,
+              ' , w: ',
+              wpf(a, p, s),
+              ' , f: ',
+              fpf(a, p, s),
+              ' , spf: ',
+              spf(a, p, s),
+              ' , n:',
+              n
+            ]);
           print(sb);
         }
       }
