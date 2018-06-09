@@ -1,6 +1,7 @@
 name: tde_sim
 dependencies:
   args: any
+  isolate: any
   meta: any
   rational: "^0.2.0"
   trotter: any
