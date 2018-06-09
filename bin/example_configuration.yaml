@@ -1,0 +1,48 @@
+# Each hero in this list will fight against every other hero in this list.
+# Maybe it makes more sense to specify attribute ranges and generate heroes all
+# possible heroes in that range, instead of having to specify them by hand here.
+heroes:
+  # This is Kazan.
+  - name: 'Kazan'
+    vi: 28
+    wt: 7
+    ar: 0
+    hp: 3
+    at: 12
+    pa: 12
+  # This one has ar+1, hp-1 compared to Kazan
+  - name: 'ar+1,hp-1'
+    vi: 28
+    wt: 7
+    ar: 1
+    hp: 2
+    at: 12
+    pa: 12
+  - name: 'ar+2,hp-1'
+    vi: 28
+    wt: 7
+    ar: 2
+    hp: 1
+    at: 12
+    pa: 12
+  - name: 'at+1,pa-1'
+    vi: 28
+    wt: 7
+    ar: 3
+    hp: 0
+    at: 13
+    pa: 11
+  - name: 'at+2,pa-2'
+    vi: 28
+    wt: 7
+    ar: 3
+    hp: 0
+    at: 14
+    pa: 10
+  - name: 'NERF THIS!'
+    vi: 20
+    wt: 7
+    ar: 3
+    hp: 0
+    at: 20
+    pa: 12
