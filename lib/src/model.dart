@@ -101,7 +101,7 @@ class HalfACombatRound {
         lastFeint: 0,
         lastForcefulBlow: 0,
         lastImprovedParry: 0,
-        probability: probability * _one - hitChance,
+        probability: probability * (_one - hitChance),
         depth: depth + 1)] = _one - hitChance;
 
     for (var dmg = 1; dmg <= 6; dmg++) {
