@@ -9,53 +9,27 @@ void main() {
             wawf(a, p, s) <= 18 &&
             0 <= fawf(a, p, s) &&
             fawf(a, p, s) <= 19 - p &&
-            (sawf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
-            (sawf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1)) {
-          var sb = new StringBuffer();
-          sb.writeAll([
-            'a: ',
-            a,
-            '; P. ',
-            p,
-            '; s: ',
-            s,
-            ', w: ',
-            wawf(a, p, s),
-            ', f: ',
-            fawf(a, p, s),
-            ' , sawf: ',
-            sawf(a, p, s),
-            ' , n:',
-            n
-          ]);
-          print(sb);
-        }
+            //(sawf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
+            (sawf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1))
+          print(
+              'a: $a, p: $p, s: $s, w: ${wawf(a, p, s)}, f: ${fawf(a, p, s)}, sawf: ${sawf(a, p, s)}, n: $n');
         //p-f=1a
         if (spf(a, p, s) > n &&
             0 <= wpf(a, p, s) &&
             0 <= fpf(a, p, s) &&
             a - wpf(a, p, s) - fpf(a, p, s) >= 1 &&
-            (spf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
-            (spf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1)) {
-          var sb = new StringBuffer();
-          sb.writeAll([
-            'a: ',
-            a,
-            ' , p: ',
-            p,
-            ' , s: ',
-            s,
-            ' , w: ',
-            wpf(a, p, s),
-            ' , f: ',
-            fpf(a, p, s),
-            ' , spf: ',
-            spf(a, p, s),
-            ' , n:',
-            n
-          ]);
-          print(sb);
-        }
+            //(spf(a, p, s) > sw0(a, p, s) || fw0(a, p, s) > 19 - p) &&
+            (spf(a, p, s) > sf0(a, p, s) || wf0(a, p, s) > a - 1))
+          print(
+              'a: $a, p: $p, s: $s, w: ${wpf(a, p, s)}, f: ${fpf(a, p, s)}, spf: ${spf(a, p, s)}, n: $n');
+        if (sw0(a, p, s) > sf0(a, p, s) &&
+            fw0(a, p, s) < 19 - p &&
+            fw0(a, p, s) < a - 1 &&
+            fw0(a, p, s) >= 0 &&
+            wf0(a, p, s) >= 0 &&
+            wf0(a, p, s) < a - 1)
+          print(
+              'a: $a, p: $p, s: $s, w: ${wf0(a, p, s)}, f: ${fw0(a, p, s)}, sw0: ${sw0(a, p, s)}, sf0: ${sf0(a, p, s)}, n: $n');
       }
 }
 
