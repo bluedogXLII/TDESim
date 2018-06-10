@@ -8,7 +8,12 @@
       "name": "main.dart",
       "program": "bin/main.dart",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "args": [
+        "--depth",
+        "4",
+        "bin/example_configuration.yaml"
+      ]
     },
     {
       "name": "limitTest.dart",

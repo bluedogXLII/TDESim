@@ -1,24 +1,62 @@
 import 'dart:collection';
+import 'dart:io';
+import 'package:args/args.dart';
 import 'package:tde_sim/src/model.dart';
+import 'package:trotter/trotter.dart';
+import 'package:yaml/yaml.dart';
 
-/// Evaluate **all** states up until this depth.
-const int depth = 7;
+final argParser = new ArgParser()
+  ..addOption('depth', abbr: 'd')
+  ..addFlag('verbose', abbr: 'v');
 
-void main() {
-  final player1 =
-      new Hero('Kazan', vi: 28, wt: 7, ar: 0, hp: 3, at: 12, pa: 12);
-  final player2 =
-      new Hero('Nazak', vi: 28, wt: 7, ar: 0, hp: 3, at: 12, pa: 12);
+void main(List<String> rawArgs) {
+  final args = argParser.parse(rawArgs);
+  final configFile = args.rest.length == 1 ? args.rest.single : null;
+  final depth = args['depth'] != null ? int.tryParse(args['depth']) : null;
+  final verbose = args['verbose'] as bool;
+  if (configFile == null || depth == null || depth < 1 || verbose == null) {
+    print('usage: dart main.dart [options] <config.yaml>');
+    print('options:');
+    print(argParser.usage);
+    return;
+  }
+
+  dynamic config;
+  try {
+    config = loadYaml(new File(configFile).readAsStringSync(),
+        sourceUrl: configFile);
+  } on FileSystemException catch (e) {
+    print('error while reading the config file: $e');
+    return;
+  }
+
+  final heroes = <Hero>[];
+  for (final hero in config['heroes']) {
+    assert(hero is Map<String, dynamic>);
+    heroes.add(new Hero(hero['name'],
+        vi: hero['vi'],
+        wt: hero['wt'],
+        ar: hero['ar'],
+        hp: hero['hp'],
+        at: hero['at'],
+        pa: hero['pa']));
+  }
+
+  for (final combination in new Combinations(2, heroes).iterable) {
+    simulateCombat(combination[0], combination[1], depth, verbose);
+  }
+}
+
+void simulateCombat(Hero player1, Hero player2, int depth, bool verbose) {
   final queue = new Queue.of([new HalfACombatRound(player1, player2)]);
 
   final watch = new Stopwatch()..start();
   var visitedStates = 0;
   while (queue.isNotEmpty) {
     final state = queue.removeFirst();
-    //print(state);
     visitedStates++;
     if (state.depth == depth) {
-      //print(state); //the printing takes too much time
+      if (verbose) print(state);
     } else {
       queue.addAll(state.transitions.keys);
     }
