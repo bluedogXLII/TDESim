@@ -107,8 +107,3 @@ class SimulationTask {
   final int depth;
   final bool verbose;
 }
-//tested 9.6. on i7-4790, 3,6GHz;
-//depth 5: 135/ms   145ms
-//depth 6: 179/ms   765ms
-//depth 7: 180/ms  5326ms
-//depth 8: 151/ms 44533ms

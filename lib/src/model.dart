@@ -47,7 +47,7 @@ class HalfACombatRound {
   final int depth;
 
   /// All succeeding combat rounds that have a non-zero chance of happening.
-  /// The values of this map are the chances of this transition being taken, in
+  /// The values of this map are the probabilities of this transition being taken, in
   /// the range [0, 1].
   Map<HalfACombatRound, Rational> get transitions =>
       _transitions ??= _computeTransitions();
@@ -86,9 +86,13 @@ class HalfACombatRound {
   Map<HalfACombatRound, Rational> _computeTransitions() {
     final result = <HalfACombatRound, Rational>{};
 
+    for(int m : manöver) //TODO create enum manöver (english?)
+
+
     final attackSuccessProbability = new Rational.fromInt(attacker.at, 20);
     final parryFailureProbability = new Rational.fromInt(20 - defender.pa, 20);
     final hitChance = attackSuccessProbability * parryFailureProbability;
+
     result[new HalfACombatRound._(
         attacker: defender,
         defender: attacker,
