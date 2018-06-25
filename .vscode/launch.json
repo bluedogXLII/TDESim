@@ -11,7 +11,7 @@
       "type": "dart",
       "args": [
         "--depth",
-        "4",
+        "2",
         "bin/example_configuration.yaml"
       ]
     },
