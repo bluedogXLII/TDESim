@@ -1,6 +1,5 @@
-import 'dart:math';
-import 'package:rational/rational.dart';
 import 'package:meta/meta.dart';
+import 'package:rational/rational.dart';
 
 final allowImprovedParry = true;
 final allowManeuvers = true;
@@ -95,9 +94,7 @@ class HalfACombatRound {
     final result = <HalfACombatRound, Rational>{};
 
     void addSuccessor(
-            {@required Hero attacker,
-            @required Hero defender,
-            @required int attackerVp,
+            {@required int attackerVp,
             @required int defenderVp,
             @required int attackerPenalty,
             @required int defenderPenalty,
@@ -107,11 +104,10 @@ class HalfACombatRound {
             @required int lastForcefulBlow,
             @required int lastImprovedParry,
             @required Maneuver lastManeuver,
-            @required int depth,
             @required Rational successorProbability}) =>
         result[new HalfACombatRound._(
-            attacker: attacker,
-            defender: defender,
+            attacker: defender,
+            defender: attacker,
             attackerVp: attackerVp,
             defenderVp: defenderVp,
             attackerPenalty: attackerPenalty,
@@ -125,13 +121,11 @@ class HalfACombatRound {
             probability: probability * successorProbability,
             depth: depth + 1)] = successorProbability;
 
-    int limit(int n, int a, int b) => min(max(n, a), b);
-
     //elaborate simulation
     for (final maneuver in Maneuver.values) {
       if (!allowManeuvers && maneuver != Maneuver.normalAttack) continue;
 
-      var maneuverPenalty;
+      int maneuverPenalty;
       switch (maneuver) {
         case Maneuver.normalAttack:
           maneuverPenalty = 0;
@@ -152,19 +146,15 @@ class HalfACombatRound {
           final attackPenalty = f + w + maneuverPenalty;
 
           final attackSuccess = new Rational.fromInt(
-              limit(
-                  attacker.at -
+              (attacker.at -
                       attackerPenalty -
                       attackPenalty -
-                      2 * attackerWounds,
-                  1,
-                  19),
+                      2 * attackerWounds)
+                  .clamp(1, 19),
               20);
 
           // attack failed
           addSuccessor(
-              attacker: defender,
-              defender: attacker,
               attackerVp: defenderVp,
               defenderVp: attackerVp,
               attackerPenalty: defenderPenalty,
@@ -175,8 +165,7 @@ class HalfACombatRound {
               lastForcefulBlow: w,
               lastImprovedParry: 0,
               lastManeuver: maneuver,
-              successorProbability: _one - attackSuccess,
-              depth: depth + 1);
+              successorProbability: _one - attackSuccess);
 
           if (lastManeuver == Maneuver.deadlyThrust ||
               lastManeuver == Maneuver.hammerBlow) {
@@ -188,27 +177,25 @@ class HalfACombatRound {
               switch (maneuver) {
                 case Maneuver.normalAttack:
                   s = attacker.hp + die + w - defender.ar;
-                  wounds = limit((s / defender.wt * 2).floor(), 0, 3);
+                  wounds = (s / defender.wt * 2).floor().clamp(0, 3);
                   break;
                 case Maneuver.preciseThrust:
                   s = attacker.hp + die;
-                  wounds = limit((s / (defender.wt - 2) * 2).floor(), 0, 3) + 1;
+                  wounds = (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 1;
                   break;
                 case Maneuver.deadlyThrust:
                   s = attacker.hp + die + w;
-                  wounds = limit((s / (defender.wt - 2) * 2).floor(), 0, 3) + 2;
+                  wounds = (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 2;
                   break;
                 case Maneuver.hammerBlow:
                   s = 3 * (attacker.hp + die + w) - defender.ar;
-                  wounds = limit((s / defender.wt * 2).floor(), 0, 3);
+                  wounds = (s / defender.wt * 2).floor().clamp(0, 3);
                   break;
               }
               if (s <= 0)
                 noDamageCount++;
               else
                 addSuccessor(
-                    attacker: defender,
-                    defender: attacker,
                     attackerVp: defenderVp - s,
                     defenderVp: attackerVp,
                     attackerPenalty: defenderPenalty,
@@ -219,14 +206,11 @@ class HalfACombatRound {
                     lastForcefulBlow: w,
                     lastImprovedParry: 0,
                     lastManeuver: maneuver,
-                    successorProbability: attackSuccess * _oneSixth,
-                    depth: depth + 1);
+                    successorProbability: attackSuccess * _oneSixth);
             }
             // no damage inflicted
             if (noDamageCount > 0)
               addSuccessor(
-                  attacker: defender,
-                  defender: attacker,
                   attackerVp: defenderVp,
                   defenderVp: attackerVp,
                   attackerPenalty: defenderPenalty,
@@ -238,25 +222,16 @@ class HalfACombatRound {
                   lastImprovedParry: 0,
                   lastManeuver: maneuver,
                   successorProbability:
-                      attackSuccess * (new Rational.fromInt(noDamageCount, 6)),
-                  depth: depth + 1);
+                      attackSuccess * (new Rational.fromInt(noDamageCount, 6)));
           } else {
             for (var m = 0; m < defender.pa; m++) {
               final parrySuccess = new Rational.fromInt(
-                  limit(
-                      defender.pa -
-                          m -
-                          f -
-                          defenderPenalty -
-                          2 * defenderWounds,
-                      1,
-                      19),
+                  (defender.pa - m - f - defenderPenalty - 2 * defenderWounds)
+                      .clamp(1, 19),
                   20);
 
               // parry succeeded
               addSuccessor(
-                  attacker: defender,
-                  defender: attacker,
                   attackerVp: defenderVp,
                   defenderVp: attackerVp,
                   attackerPenalty: 0,
@@ -267,8 +242,7 @@ class HalfACombatRound {
                   lastForcefulBlow: w,
                   lastImprovedParry: m,
                   lastManeuver: maneuver,
-                  successorProbability: attackSuccess * parrySuccess,
-                  depth: depth + 1);
+                  successorProbability: attackSuccess * parrySuccess);
 
               // parry failed
               var noDamageCount = 0;
@@ -278,29 +252,27 @@ class HalfACombatRound {
                 switch (maneuver) {
                   case Maneuver.normalAttack:
                     s = attacker.hp + die + w - defender.ar;
-                    wounds = limit((s / defender.wt * 2).floor(), 0, 3);
+                    wounds = (s / defender.wt * 2).floor().clamp(0, 3);
                     break;
                   case Maneuver.preciseThrust:
                     s = attacker.hp + die;
                     wounds =
-                        limit((s / (defender.wt - 2) * 2).floor(), 0, 3) + 1;
+                        (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 1;
                     break;
                   case Maneuver.deadlyThrust:
                     s = attacker.hp + die + w;
                     wounds =
-                        limit((s / (defender.wt - 2) * 2).floor(), 0, 3) + 2;
+                        (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 2;
                     break;
                   case Maneuver.hammerBlow:
                     s = 3 * (attacker.hp + die + w) - defender.ar;
-                    wounds = limit((s / defender.wt * 2).floor(), 0, 3);
+                    wounds = (s / defender.wt * 2).floor().clamp(0, 3);
                     break;
                 }
                 if (s <= 0)
                   noDamageCount++;
                 else
                   addSuccessor(
-                      attacker: defender,
-                      defender: attacker,
                       attackerVp: defenderVp - s,
                       defenderVp: attackerVp,
                       attackerPenalty: m,
@@ -312,14 +284,11 @@ class HalfACombatRound {
                       lastImprovedParry: m,
                       lastManeuver: maneuver,
                       successorProbability:
-                          (_one - parrySuccess) * attackSuccess * _oneSixth,
-                      depth: depth + 1);
+                          (_one - parrySuccess) * attackSuccess * _oneSixth);
               }
               // no damage inflicted
               if (noDamageCount > 0)
                 addSuccessor(
-                    attacker: defender,
-                    defender: attacker,
                     attackerVp: defenderVp,
                     defenderVp: attackerVp,
                     attackerPenalty: m,
@@ -332,8 +301,7 @@ class HalfACombatRound {
                     lastManeuver: maneuver,
                     successorProbability: (_one - parrySuccess) *
                         attackSuccess *
-                        (new Rational.fromInt(noDamageCount, 6)),
-                    depth: depth + 1);
+                        (new Rational.fromInt(noDamageCount, 6)));
               if (!allowImprovedParry) break;
             }
           }
@@ -346,44 +314,6 @@ class HalfACombatRound {
     // gezielter stich: +4+r/2+f RSignoriert, +1wunde, WS-2
     // todesstoß: +8+r/2+w+f, RSignoriert, +2wunden, WS-2, keine abwehr
     // hammerschlag: +8+w+f, (TP+w)*3, keine abwehr
-
-    /*
-      final attackSuccessProbability = new Rational.fromInt(attacker.at, 20);
-      final parryFailureProbability = new Rational.fromInt(20 - defender.pa, 20);
-      final hitChance = attackSuccessProbability * parryFailureProbability;
-
-      result[new HalfACombatRound._(
-          attacker: defender,
-          defender: attacker,
-          attackerVp: defenderVp,
-          defenderVp: attackerVp,
-          attackerPenalty: defenderPenalty,
-          defenderPenalty: attackerPenalty,
-          attackerWounds: defenderWounds,
-          defenderWounds: attackerWounds,
-          lastFeint: 0,
-          lastForcefulBlow: 0,
-          lastImprovedParry: 0,
-          probability: probability * (_one - hitChance),
-          depth: depth + 1)] = _one - hitChance;
-
-      for (var dmg = 1; dmg <= 6; dmg++) {
-        result[new HalfACombatRound._(
-            attacker: defender,
-            defender: attacker,
-            attackerVp: max(defenderVp - (dmg - defender.ar + attacker.hp), 0),
-            defenderVp: attackerVp,
-            attackerPenalty: defenderPenalty,
-            defenderPenalty: attackerPenalty,
-            attackerWounds: defenderWounds,
-            defenderWounds: attackerWounds,
-            lastFeint: 0,
-            lastForcefulBlow: 0,
-            lastImprovedParry: 0,
-            probability: probability * hitChance * _oneSixth,
-            depth: depth + 1)] = hitChance * _oneSixth;
-      }
-    */
 
     return result;
   }
