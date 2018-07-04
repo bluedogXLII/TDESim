@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:isolate/isolate_runner.dart';
+import 'package:rational/rational.dart';
 import 'package:tde_sim/src/model.dart';
-import 'package:trotter/trotter.dart';
 import 'package:yaml/yaml.dart';
 
 final argParser = new ArgParser()
@@ -44,7 +45,6 @@ void main(List<String> rawArgs) async {
 
   final heroes = <Hero>[];
   for (final hero in config['heroes']) {
-    assert(hero is Map<String, dynamic>);
     heroes.add(new Hero(hero['name'],
         vi: hero['vi'],
         wt: hero['wt'],
@@ -53,10 +53,11 @@ void main(List<String> rawArgs) async {
         at: hero['at'],
         pa: hero['pa']));
   }
-  final tasks = new Queue.of(new Combinations(2, heroes).iterable.map(
-      (combination) =>
-          new SimulationTask(combination[0], combination[1], depth, verbose)));
-  final results = <Duration>[];
+  final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0])
+      .transitions
+      .keys
+      .map((combatRound) => new SimulationTask(combatRound, depth, verbose)));
+  final results = <MapEntry<HalfACombatRound, Rational>>[];
 
   Future<void> runWorker([int workerNumber]) async {
     // Short explanation of how isolates communicate:
@@ -64,30 +65,41 @@ void main(List<String> rawArgs) async {
     // Luckily for us, [IsolateRunner] wraps this functionality in an easier API.
     final runner = await IsolateRunner.spawn();
     while (tasks.isNotEmpty) {
-      results.add(await runner.run(simulateCombat, tasks.removeFirst()));
+      final task = tasks.removeFirst();
+      results.add(
+          new MapEntry(task.start, await runner.run(simulateCombat, task)));
     }
     runner.close();
   }
 
   await Future.wait(new List.generate(parallelism, runWorker));
+  results.sort((a, b) {
+    if (a.value < b.value) return -1;
+    if (a.value > b.value) return 1;
+    return 0;
+  });
+
   watch.stop();
-  print('individual durations: $results, '
-      'total: ${results.reduce((a, b) => a + b)}');
   print('total program runtime: ${watch.elapsed}');
+
+  for (final result in results.reversed) {
+    print('with payoff ${result.value.toDouble()}: ${result.key}');
+  }
 }
 
 /// Explores all possible outcomes of this combat up to `task.depth`. Returns
 /// the time it took to build up the state tree.
-Duration simulateCombat(SimulationTask task) {
-  final queue = new Queue.of(
-      [new HalfACombatRound(task.initialAttacker, task.initialDefender)]);
+Rational simulateCombat(SimulationTask task) {
+  final queue = new Queue.of([task.start]);
 
   final watch = new Stopwatch()..start();
   var visitedStates = 0;
+  var totalPayoff = new Rational.fromInt(0);
   while (queue.isNotEmpty) {
     final state = queue.removeFirst();
     visitedStates++;
     if (state.depth == task.depth) {
+      totalPayoff += state.payoff;
       if (task.verbose) print(state);
     } else {
       queue.addAll(state.transitions.keys);
@@ -95,15 +107,13 @@ Duration simulateCombat(SimulationTask task) {
   }
   watch.stop();
   print('Visited $visitedStates in ${watch.elapsedMilliseconds}ms');
-  return watch.elapsed;
+  return totalPayoff / task.start.probability;
 }
 
 class SimulationTask {
-  SimulationTask(
-      this.initialAttacker, this.initialDefender, this.depth, this.verbose);
+  SimulationTask(this.start, this.depth, this.verbose);
 
-  final Hero initialAttacker;
-  final Hero initialDefender;
+  final HalfACombatRound start;
   final int depth;
   final bool verbose;
 }

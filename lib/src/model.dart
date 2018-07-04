@@ -58,6 +58,11 @@ class HalfACombatRound {
       _transitions ??= _computeTransitions();
   Map<HalfACombatRound, Rational> _transitions;
 
+  Rational get payoff =>
+      new Rational.fromInt(
+          (attacker.vi - attackerVp) - (defender.vi - defenderVp)) *
+      probability;
+
   /// Creates a new combat round for a new combat.
   HalfACombatRound(this.attacker, this.defender)
       : attackerVp = attacker.vi,
