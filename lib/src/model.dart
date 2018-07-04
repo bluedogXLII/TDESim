@@ -1,6 +1,8 @@
 import 'package:meta/meta.dart';
 import 'package:rational/rational.dart';
 
+import 'maneuvers.dart';
+
 final allowImprovedParry = true;
 final allowManeuvers = true;
 
@@ -38,8 +40,6 @@ class Hero {
       @required this.at,
       @required this.pa});
 }
-
-enum Maneuver { normalAttack, preciseThrust, deadlyThrust, hammerBlow }
 
 class HalfACombatRound {
   final Hero attacker, defender;
@@ -125,21 +125,7 @@ class HalfACombatRound {
     for (final maneuver in Maneuver.values) {
       if (!allowManeuvers && maneuver != Maneuver.normalAttack) continue;
 
-      int maneuverPenalty;
-      switch (maneuver) {
-        case Maneuver.normalAttack:
-          maneuverPenalty = 0;
-          break;
-        case Maneuver.preciseThrust:
-          maneuverPenalty = 4 + (defender.ar / 2).round();
-          break;
-        case Maneuver.deadlyThrust:
-          maneuverPenalty = 8 + (defender.ar / 2).round();
-          break;
-        case Maneuver.hammerBlow:
-          maneuverPenalty = 8;
-          break;
-      }
+      final maneuverPenalty = maneuver.calculatePenalty(defender.ar);
 
       for (var f = 0; f < attacker.at - maneuverPenalty; f++) {
         for (var w = 0; w < attacker.at - f - maneuverPenalty; w++) {
@@ -172,26 +158,9 @@ class HalfACombatRound {
             // no parry
             var noDamageCount = 0;
             for (var die = 1; die <= 6; die++) {
-              var s;
-              var wounds;
-              switch (maneuver) {
-                case Maneuver.normalAttack:
-                  s = attacker.hp + die + w - defender.ar;
-                  wounds = (s / defender.wt * 2).floor().clamp(0, 3);
-                  break;
-                case Maneuver.preciseThrust:
-                  s = attacker.hp + die;
-                  wounds = (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 1;
-                  break;
-                case Maneuver.deadlyThrust:
-                  s = attacker.hp + die + w;
-                  wounds = (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 2;
-                  break;
-                case Maneuver.hammerBlow:
-                  s = 3 * (attacker.hp + die + w) - defender.ar;
-                  wounds = (s / defender.wt * 2).floor().clamp(0, 3);
-                  break;
-              }
+              final s =
+                  maneuver.calculateDamage(attacker.hp, die, w, defender.ar);
+              final wounds = maneuver.calculateWounds(s, defender.wt);
               if (s <= 0)
                 noDamageCount++;
               else
@@ -247,28 +216,9 @@ class HalfACombatRound {
               // parry failed
               var noDamageCount = 0;
               for (var die = 1; die <= 6; die++) {
-                var s;
-                var wounds;
-                switch (maneuver) {
-                  case Maneuver.normalAttack:
-                    s = attacker.hp + die + w - defender.ar;
-                    wounds = (s / defender.wt * 2).floor().clamp(0, 3);
-                    break;
-                  case Maneuver.preciseThrust:
-                    s = attacker.hp + die;
-                    wounds =
-                        (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 1;
-                    break;
-                  case Maneuver.deadlyThrust:
-                    s = attacker.hp + die + w;
-                    wounds =
-                        (s / (defender.wt - 2) * 2).floor().clamp(0, 3) + 2;
-                    break;
-                  case Maneuver.hammerBlow:
-                    s = 3 * (attacker.hp + die + w) - defender.ar;
-                    wounds = (s / defender.wt * 2).floor().clamp(0, 3);
-                    break;
-                }
+                final s =
+                    maneuver.calculateDamage(attacker.hp, die, w, defender.ar);
+                final wounds = maneuver.calculateWounds(s, defender.wt);
                 if (s <= 0)
                   noDamageCount++;
                 else
