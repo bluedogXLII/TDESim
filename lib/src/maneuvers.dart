@@ -13,6 +13,8 @@ abstract class Maneuver {
     hammerBlow
   ];
 
+  bool get consumesDefensiveAction;
+
   int calculatePenalty(int defenderAr);
 
   int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr);
@@ -22,6 +24,9 @@ abstract class Maneuver {
 
 class NormalAttack extends Maneuver {
   const NormalAttack();
+
+  @override
+  bool get consumesDefensiveAction => false;
 
   @override
   int calculatePenalty(int defenderAr) => 0;
@@ -39,6 +44,9 @@ class PreciseThrust extends Maneuver {
   const PreciseThrust();
 
   @override
+  bool get consumesDefensiveAction => false;
+
+  @override
   int calculatePenalty(int defenderAr) => 4 + (defenderAr / 2).round();
 
   @override
@@ -54,6 +62,9 @@ class DeadlyThrust extends Maneuver {
   const DeadlyThrust();
 
   @override
+  bool get consumesDefensiveAction => true;
+
+  @override
   int calculatePenalty(int defenderAr) => 8 + (defenderAr / 2).round();
 
   @override
@@ -67,6 +78,9 @@ class DeadlyThrust extends Maneuver {
 
 class HammerBlow extends Maneuver {
   const HammerBlow();
+
+  @override
+  bool get consumesDefensiveAction => true;
 
   @override
   int calculatePenalty(int defenderAr) => 8;

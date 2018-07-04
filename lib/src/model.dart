@@ -153,8 +153,7 @@ class HalfACombatRound {
               lastManeuver: maneuver,
               successorProbability: _one - attackSuccess);
 
-          if (lastManeuver == Maneuver.deadlyThrust ||
-              lastManeuver == Maneuver.hammerBlow) {
+          if (lastManeuver.consumesDefensiveAction) {
             // no parry
             var noDamageCount = 0;
             for (var die = 1; die <= 6; die++) {
