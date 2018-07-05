@@ -2,9 +2,9 @@ import 'package:meta/meta.dart';
 import 'package:rational/rational.dart';
 
 import 'maneuvers.dart';
+import 'strategies.dart';
 
 final allowImprovedParry = true;
-final allowManeuvers = true;
 
 final Rational _one = new Rational.fromInt(1);
 final Rational _oneSixth = new Rational.fromInt(1, 6);
@@ -32,13 +32,25 @@ class Hero {
   /// number than this on a D20.
   final int pa;
 
-  Hero(this.name,
+  final Strategy strategy;
+
+  Hero(this.name, this.strategy,
       {@required this.vi,
       @required this.wt,
       @required this.ar,
       @required this.hp,
       @required this.at,
       @required this.pa});
+}
+
+class PlayerChoice {
+  PlayerChoice(this.maneuver, this.feint, this.forcefulBlow);
+
+  final Maneuver maneuver;
+  final int feint;
+  final int forcefulBlow;
+
+  Map<HalfACombatRound, Rational> transitions;
 }
 
 class HalfACombatRound {
@@ -137,141 +149,136 @@ class HalfACombatRound {
             remainingDepth: remainingDepth - 1)] = successorProbability;
 
     //elaborate simulation
-    for (final maneuver in Maneuver.values) {
-      if (!allowManeuvers && maneuver != Maneuver.normalAttack) continue;
+    for (final choice in attacker.strategy.enumerateChoices(this)) {
+      final attackPenalty = choice.feint +
+          choice.forcefulBlow +
+          choice.maneuver.calculatePenalty(defender.ar);
 
-      final maneuverPenalty = maneuver.calculatePenalty(defender.ar);
+      final attackSuccess = new Rational.fromInt(
+          (attacker.at - attackerPenalty - attackPenalty - 2 * attackerWounds)
+              .clamp(1, 19),
+          20);
 
-      for (var f = 0; f < attacker.at - maneuverPenalty; f++) {
-        for (var w = 0; w < attacker.at - f - maneuverPenalty; w++) {
-          final attackPenalty = f + w + maneuverPenalty;
+      // attack failed
+      addSuccessor(
+          attackerVp: defenderVp,
+          defenderVp: attackerVp,
+          attackerPenalty: defenderPenalty,
+          defenderPenalty: attackPenalty,
+          attackerWounds: defenderWounds,
+          defenderWounds: attackerWounds,
+          lastFeint: choice.feint,
+          lastForcefulBlow: choice.forcefulBlow,
+          lastImprovedParry: 0,
+          lastManeuver: choice.maneuver,
+          successorProbability: _one - attackSuccess);
 
-          final attackSuccess = new Rational.fromInt(
-              (attacker.at -
-                      attackerPenalty -
-                      attackPenalty -
-                      2 * attackerWounds)
-                  .clamp(1, 19),
-              20);
-
-          // attack failed
+      if (lastManeuver.consumesDefensiveAction) {
+        // no parry
+        var noDamageCount = 0;
+        for (var die = 1; die <= 6; die++) {
+          final s = choice.maneuver.calculateDamage(
+              attacker.hp, die, choice.forcefulBlow, defender.ar);
+          final wounds = choice.maneuver.calculateWounds(s, defender.wt);
+          if (s <= 0)
+            noDamageCount++;
+          else
+            addSuccessor(
+                attackerVp: defenderVp - s,
+                defenderVp: attackerVp,
+                attackerPenalty: defenderPenalty,
+                defenderPenalty: 0,
+                attackerWounds: defenderWounds + wounds,
+                defenderWounds: attackerWounds,
+                lastFeint: choice.feint,
+                lastForcefulBlow: choice.forcefulBlow,
+                lastImprovedParry: 0,
+                lastManeuver: choice.maneuver,
+                successorProbability: attackSuccess * _oneSixth);
+        }
+        // no damage inflicted
+        if (noDamageCount > 0)
           addSuccessor(
               attackerVp: defenderVp,
               defenderVp: attackerVp,
               attackerPenalty: defenderPenalty,
-              defenderPenalty: attackPenalty,
+              defenderPenalty: 0,
               attackerWounds: defenderWounds,
               defenderWounds: attackerWounds,
-              lastFeint: f,
-              lastForcefulBlow: w,
+              lastFeint: choice.feint,
+              lastForcefulBlow: choice.forcefulBlow,
               lastImprovedParry: 0,
-              lastManeuver: maneuver,
-              successorProbability: _one - attackSuccess);
+              lastManeuver: choice.maneuver,
+              successorProbability:
+                  attackSuccess * (new Rational.fromInt(noDamageCount, 6)));
+      } else {
+        for (var m = 0; m < defender.pa; m++) {
+          final parrySuccess = new Rational.fromInt(
+              (defender.pa -
+                      m -
+                      choice.feint -
+                      defenderPenalty -
+                      2 * defenderWounds)
+                  .clamp(1, 19),
+              20);
 
-          if (lastManeuver.consumesDefensiveAction) {
-            // no parry
-            var noDamageCount = 0;
-            for (var die = 1; die <= 6; die++) {
-              final s =
-                  maneuver.calculateDamage(attacker.hp, die, w, defender.ar);
-              final wounds = maneuver.calculateWounds(s, defender.wt);
-              if (s <= 0)
-                noDamageCount++;
-              else
-                addSuccessor(
-                    attackerVp: defenderVp - s,
-                    defenderVp: attackerVp,
-                    attackerPenalty: defenderPenalty,
-                    defenderPenalty: 0,
-                    attackerWounds: defenderWounds + wounds,
-                    defenderWounds: attackerWounds,
-                    lastFeint: f,
-                    lastForcefulBlow: w,
-                    lastImprovedParry: 0,
-                    lastManeuver: maneuver,
-                    successorProbability: attackSuccess * _oneSixth);
-            }
-            // no damage inflicted
-            if (noDamageCount > 0)
+          // parry succeeded
+          addSuccessor(
+              attackerVp: defenderVp,
+              defenderVp: attackerVp,
+              attackerPenalty: 0,
+              defenderPenalty: m,
+              attackerWounds: defenderWounds,
+              defenderWounds: attackerWounds,
+              lastFeint: choice.feint,
+              lastForcefulBlow: choice.forcefulBlow,
+              lastImprovedParry: m,
+              lastManeuver: choice.maneuver,
+              successorProbability: attackSuccess * parrySuccess);
+
+          // parry failed
+          var noDamageCount = 0;
+          for (var die = 1; die <= 6; die++) {
+            final s = choice.maneuver.calculateDamage(
+                attacker.hp, die, choice.forcefulBlow, defender.ar);
+            final wounds = choice.maneuver.calculateWounds(s, defender.wt);
+            if (s <= 0)
+              noDamageCount++;
+            else
               addSuccessor(
-                  attackerVp: defenderVp,
+                  attackerVp: defenderVp - s,
                   defenderVp: attackerVp,
-                  attackerPenalty: defenderPenalty,
+                  attackerPenalty: m,
                   defenderPenalty: 0,
-                  attackerWounds: defenderWounds,
+                  attackerWounds: defenderWounds + wounds,
                   defenderWounds: attackerWounds,
-                  lastFeint: f,
-                  lastForcefulBlow: w,
-                  lastImprovedParry: 0,
-                  lastManeuver: maneuver,
-                  successorProbability:
-                      attackSuccess * (new Rational.fromInt(noDamageCount, 6)));
-          } else {
-            for (var m = 0; m < defender.pa; m++) {
-              final parrySuccess = new Rational.fromInt(
-                  (defender.pa - m - f - defenderPenalty - 2 * defenderWounds)
-                      .clamp(1, 19),
-                  20);
-
-              // parry succeeded
-              addSuccessor(
-                  attackerVp: defenderVp,
-                  defenderVp: attackerVp,
-                  attackerPenalty: 0,
-                  defenderPenalty: m,
-                  attackerWounds: defenderWounds,
-                  defenderWounds: attackerWounds,
-                  lastFeint: f,
-                  lastForcefulBlow: w,
+                  lastFeint: choice.feint,
+                  lastForcefulBlow: choice.forcefulBlow,
                   lastImprovedParry: m,
-                  lastManeuver: maneuver,
-                  successorProbability: attackSuccess * parrySuccess);
-
-              // parry failed
-              var noDamageCount = 0;
-              for (var die = 1; die <= 6; die++) {
-                final s =
-                    maneuver.calculateDamage(attacker.hp, die, w, defender.ar);
-                final wounds = maneuver.calculateWounds(s, defender.wt);
-                if (s <= 0)
-                  noDamageCount++;
-                else
-                  addSuccessor(
-                      attackerVp: defenderVp - s,
-                      defenderVp: attackerVp,
-                      attackerPenalty: m,
-                      defenderPenalty: 0,
-                      attackerWounds: defenderWounds + wounds,
-                      defenderWounds: attackerWounds,
-                      lastFeint: f,
-                      lastForcefulBlow: w,
-                      lastImprovedParry: m,
-                      lastManeuver: maneuver,
-                      successorProbability:
-                          (_one - parrySuccess) * attackSuccess * _oneSixth);
-              }
-              // no damage inflicted
-              if (noDamageCount > 0)
-                addSuccessor(
-                    attackerVp: defenderVp,
-                    defenderVp: attackerVp,
-                    attackerPenalty: m,
-                    defenderPenalty: 0,
-                    attackerWounds: defenderWounds,
-                    defenderWounds: attackerWounds,
-                    lastFeint: f,
-                    lastForcefulBlow: w,
-                    lastImprovedParry: m,
-                    lastManeuver: maneuver,
-                    successorProbability: (_one - parrySuccess) *
-                        attackSuccess *
-                        (new Rational.fromInt(noDamageCount, 6)));
-              if (!allowImprovedParry) break;
-            }
+                  lastManeuver: choice.maneuver,
+                  successorProbability:
+                      (_one - parrySuccess) * attackSuccess * _oneSixth);
           }
-          if (maneuver == Maneuver.preciseThrust) break;
+          // no damage inflicted
+          if (noDamageCount > 0)
+            addSuccessor(
+                attackerVp: defenderVp,
+                defenderVp: attackerVp,
+                attackerPenalty: m,
+                defenderPenalty: 0,
+                attackerWounds: defenderWounds,
+                defenderWounds: attackerWounds,
+                lastFeint: choice.feint,
+                lastForcefulBlow: choice.forcefulBlow,
+                lastImprovedParry: m,
+                lastManeuver: choice.maneuver,
+                successorProbability: (_one - parrySuccess) *
+                    attackSuccess *
+                    (new Rational.fromInt(noDamageCount, 6)));
+          if (!allowImprovedParry) break;
         }
       }
+      //if (maneuver == Maneuver.preciseThrust) break;
     }
 
     // angriff: +0+w+f

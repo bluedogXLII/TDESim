@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:isolate/isolate_runner.dart';
 import 'package:rational/rational.dart';
-import 'package:tde_sim/src/model.dart';
+import 'package:tde_sim/tde_sim.dart';
 import 'package:yaml/yaml.dart';
 
 final argParser = new ArgParser()
@@ -45,7 +45,7 @@ void main(List<String> rawArgs) async {
 
   final heroes = <Hero>[];
   for (final hero in config['heroes']) {
-    heroes.add(new Hero(hero['name'],
+    heroes.add(new Hero(hero['name'], const TotalStrategy(),
         vi: hero['vi'],
         wt: hero['wt'],
         ar: hero['ar'],
