@@ -57,8 +57,7 @@ void main(List<String> rawArgs) async {
         pa: hero['pa']));
   }
   final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0], depth)
-      .transitions
-      .keys
+      .successors
       .map((combatRound) => new SimulationTask(combatRound, verbose)));
   final results = <MapEntry<HalfACombatRound, Rational>>[];
 
@@ -103,7 +102,7 @@ Rational simulateCombat(SimulationTask task) {
     if (state.remainingDepth == 0) {
       if (task.verbose) print(state);
     } else {
-      queue.addAll(state.transitions.keys);
+      queue.addAll(state.successors);
     }
   }
   watch.stop();
