@@ -17,7 +17,8 @@ abstract class Maneuver {
 
   int calculatePenalty(int defenderAr);
 
-  int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr);
+  int calculateDamage(
+      int attackerHp, int attackRoll, int forcefulBlow, int defenderAr);
 
   int calculateWounds(int rawDmg, int defenderWt);
 }
@@ -32,8 +33,9 @@ class NormalAttack extends Maneuver {
   int calculatePenalty(int defenderAr) => 0;
 
   @override
-  int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr) =>
-      attackerHp + attackRoll + w - defenderAr;
+  int calculateDamage(
+          int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
+      attackerHp + attackRoll + forcefulBlow - defenderAr;
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
@@ -50,7 +52,8 @@ class PreciseThrust extends Maneuver {
   int calculatePenalty(int defenderAr) => 4 + (defenderAr / 2).round();
 
   @override
-  int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr) =>
+  int calculateDamage(
+          int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
       attackerHp + attackRoll;
 
   @override
@@ -68,8 +71,9 @@ class DeadlyThrust extends Maneuver {
   int calculatePenalty(int defenderAr) => 8 + (defenderAr / 2).round();
 
   @override
-  int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr) =>
-      attackerHp + attackRoll + w;
+  int calculateDamage(
+          int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
+      attackerHp + attackRoll + forcefulBlow;
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
@@ -86,8 +90,9 @@ class HammerBlow extends Maneuver {
   int calculatePenalty(int defenderAr) => 8;
 
   @override
-  int calculateDamage(int attackerHp, int attackRoll, int w, int defenderAr) =>
-      3 * (attackerHp + attackRoll + w) - defenderAr;
+  int calculateDamage(
+          int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
+      3 * (attackerHp + attackRoll + forcefulBlow) - defenderAr;
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
