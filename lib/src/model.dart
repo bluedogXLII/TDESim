@@ -49,22 +49,33 @@ class HalfACombatRound {
   final int lastFeint, lastForcefulBlow, lastImprovedParry;
   final Maneuver lastManeuver;
   final Rational probability;
-  final int depth;
+  final int remainingDepth;
 
   /// All succeeding combat rounds that have a non-zero chance of happening.
-  /// The values of this map are the probabilities of this transition being taken, in
-  /// the range [0, 1].
+  /// The values of this map are the probabilities of this transition being
+  /// taken, in the range [0, 1].
   Map<HalfACombatRound, Rational> get transitions =>
       _transitions ??= _computeTransitions();
   Map<HalfACombatRound, Rational> _transitions;
 
-  Rational get payoff =>
-      new Rational.fromInt(
-          (attacker.vi - attackerVp) - (defender.vi - defenderVp)) *
-      probability;
+  Rational get payoff => _payoff ??= remainingDepth == 0
+      ? new Rational.fromInt(
+          (attacker.vi - attackerVp) - (defender.vi - defenderVp))
+      : bestTransition.payoff * transitions[bestTransition];
+  Rational _payoff;
+
+  HalfACombatRound get bestTransition => _bestTransition ??= remainingDepth == 0
+      ? throw new StateError(
+          "Can't get the best transition of a state whose transitions "
+          "shouldn't be generated (because remainingDepth == 0)")
+      : transitions.entries
+          .reduce(
+              (a, b) => a.key.payoff * a.value > b.key.payoff * b.value ? a : b)
+          .key;
+  HalfACombatRound _bestTransition;
 
   /// Creates a new combat round for a new combat.
-  HalfACombatRound(this.attacker, this.defender)
+  HalfACombatRound(this.attacker, this.defender, this.remainingDepth)
       : attackerVp = attacker.vi,
         defenderVp = defender.vi,
         attackerPenalty = 0,
@@ -75,8 +86,7 @@ class HalfACombatRound {
         lastFeint = 0,
         lastForcefulBlow = 0,
         lastImprovedParry = 0,
-        lastManeuver = Maneuver.normalAttack,
-        depth = 0;
+        lastManeuver = Maneuver.normalAttack;
 
   /// Internal constructor for succeeding combat rounds.
   HalfACombatRound._(
@@ -93,7 +103,7 @@ class HalfACombatRound {
       @required this.lastImprovedParry,
       @required this.lastManeuver,
       @required this.probability,
-      @required this.depth});
+      @required this.remainingDepth});
 
   Map<HalfACombatRound, Rational> _computeTransitions() {
     final result = <HalfACombatRound, Rational>{};
@@ -124,7 +134,7 @@ class HalfACombatRound {
             lastImprovedParry: lastImprovedParry,
             lastManeuver: lastManeuver,
             probability: probability * successorProbability,
-            depth: depth + 1)] = successorProbability;
+            remainingDepth: remainingDepth - 1)] = successorProbability;
 
     //elaborate simulation
     for (final maneuver in Maneuver.values) {
@@ -273,7 +283,7 @@ class HalfACombatRound {
   }
 
   @override
-  String toString() => 'Round $depth (probability: $probability): '
+  String toString() => 'Round $remainingDepth (probability: $probability): '
       '${attacker.name} (vp=$attackerVp, wounds=$attackerWounds) attacks '
       '${defender.name} (vp=$defenderVp, wounds=$defenderWounds)';
 }

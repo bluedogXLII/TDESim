@@ -53,10 +53,10 @@ void main(List<String> rawArgs) async {
         at: hero['at'],
         pa: hero['pa']));
   }
-  final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0])
+  final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0], depth)
       .transitions
       .keys
-      .map((combatRound) => new SimulationTask(combatRound, depth, verbose)));
+      .map((combatRound) => new SimulationTask(combatRound, verbose)));
   final results = <MapEntry<HalfACombatRound, Rational>>[];
 
   Future<void> runWorker([int workerNumber]) async {
@@ -94,12 +94,10 @@ Rational simulateCombat(SimulationTask task) {
 
   final watch = new Stopwatch()..start();
   var visitedStates = 0;
-  var totalPayoff = new Rational.fromInt(0);
   while (queue.isNotEmpty) {
     final state = queue.removeFirst();
     visitedStates++;
-    if (state.depth == task.depth) {
-      totalPayoff += state.payoff;
+    if (state.remainingDepth == 0) {
       if (task.verbose) print(state);
     } else {
       queue.addAll(state.transitions.keys);
@@ -107,13 +105,12 @@ Rational simulateCombat(SimulationTask task) {
   }
   watch.stop();
   print('Visited $visitedStates in ${watch.elapsedMilliseconds}ms');
-  return totalPayoff / task.start.probability;
+  return task.start.payoff;
 }
 
 class SimulationTask {
-  SimulationTask(this.start, this.depth, this.verbose);
+  SimulationTask(this.start, this.verbose);
 
   final HalfACombatRound start;
-  final int depth;
   final bool verbose;
 }
