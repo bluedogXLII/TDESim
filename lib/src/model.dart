@@ -44,11 +44,17 @@ class Hero {
 }
 
 class PlayerChoice {
-  PlayerChoice(this.maneuver, this.feint, this.forcefulBlow);
+  PlayerChoice(
+      this.maneuver, this.feint, this.forcefulBlow, this.requiredSuccessRoll)
+      : assert(requiredSuccessRoll >= 1);
 
   final Maneuver maneuver;
   final int feint;
   final int forcefulBlow;
+
+  /// If the attacker chooses to make this attack, they must roll this number or
+  /// lower on a D20 to make a successful attack. This value is always >= 1.
+  final int requiredSuccessRoll;
 
   Map<HalfACombatRound, Rational> transitions;
 }
