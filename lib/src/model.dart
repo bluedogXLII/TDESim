@@ -120,31 +120,27 @@ class HalfACombatRound {
   Map<HalfACombatRound, Rational> _computeTransitions() {
     final result = <HalfACombatRound, Rational>{};
 
-    void addSuccessor(
-            {@required int attackerVp,
-            @required int defenderVp,
-            @required int attackerPenalty,
-            @required int defenderPenalty,
-            @required int attackerWounds,
-            @required int defenderWounds,
-            @required int lastFeint,
-            @required int lastForcefulBlow,
-            @required int lastImprovedParry,
-            @required Maneuver lastManeuver,
-            @required Rational successorProbability}) =>
+    /// [attackerPenalty] is for the attacker in **this** turn, not the next!
+    /// Same for [defenderPenalty].
+    void addSuccessor(PlayerChoice choice, Rational successorProbability,
+            {int newDamage: 0,
+            int newWounds: 0,
+            int attackerPenalty: 0,
+            int defenderPenalty: 0,
+            int lastImprovedParry: 0}) =>
         result[new HalfACombatRound._(
             attacker: defender,
             defender: attacker,
-            attackerVp: attackerVp,
-            defenderVp: defenderVp,
-            attackerPenalty: attackerPenalty,
-            defenderPenalty: defenderPenalty,
-            attackerWounds: attackerWounds,
-            defenderWounds: defenderWounds,
-            lastFeint: lastFeint,
-            lastForcefulBlow: lastForcefulBlow,
+            attackerVp: defenderVp - newDamage,
+            defenderVp: attackerVp,
+            attackerPenalty: defenderPenalty,
+            defenderPenalty: attackerPenalty,
+            attackerWounds: defenderWounds + newWounds,
+            defenderWounds: attackerWounds,
+            lastFeint: choice.feint,
+            lastForcefulBlow: choice.forcefulBlow,
             lastImprovedParry: lastImprovedParry,
-            lastManeuver: lastManeuver,
+            lastManeuver: choice.maneuver,
             probability: probability * successorProbability,
             remainingDepth: remainingDepth - 1)] = successorProbability;
 
@@ -160,18 +156,8 @@ class HalfACombatRound {
           20);
 
       // attack failed
-      addSuccessor(
-          attackerVp: defenderVp,
-          defenderVp: attackerVp,
-          attackerPenalty: defenderPenalty,
-          defenderPenalty: attackPenalty,
-          attackerWounds: defenderWounds,
-          defenderWounds: attackerWounds,
-          lastFeint: choice.feint,
-          lastForcefulBlow: choice.forcefulBlow,
-          lastImprovedParry: 0,
-          lastManeuver: choice.maneuver,
-          successorProbability: _one - attackSuccess);
+      addSuccessor(choice, _one - attackSuccess,
+          defenderPenalty: attackPenalty);
 
       if (lastManeuver.consumesDefensiveAction) {
         // no parry
@@ -183,34 +169,13 @@ class HalfACombatRound {
           if (s <= 0)
             noDamageCount++;
           else
-            addSuccessor(
-                attackerVp: defenderVp - s,
-                defenderVp: attackerVp,
-                attackerPenalty: defenderPenalty,
-                defenderPenalty: 0,
-                attackerWounds: defenderWounds + wounds,
-                defenderWounds: attackerWounds,
-                lastFeint: choice.feint,
-                lastForcefulBlow: choice.forcefulBlow,
-                lastImprovedParry: 0,
-                lastManeuver: choice.maneuver,
-                successorProbability: attackSuccess * _oneSixth);
+            addSuccessor(choice, attackSuccess * _oneSixth,
+                newDamage: s, newWounds: wounds);
         }
         // no damage inflicted
         if (noDamageCount > 0)
           addSuccessor(
-              attackerVp: defenderVp,
-              defenderVp: attackerVp,
-              attackerPenalty: defenderPenalty,
-              defenderPenalty: 0,
-              attackerWounds: defenderWounds,
-              defenderWounds: attackerWounds,
-              lastFeint: choice.feint,
-              lastForcefulBlow: choice.forcefulBlow,
-              lastImprovedParry: 0,
-              lastManeuver: choice.maneuver,
-              successorProbability:
-                  attackSuccess * (new Rational.fromInt(noDamageCount, 6)));
+              choice, attackSuccess * (new Rational.fromInt(noDamageCount, 6)));
       } else {
         for (var m = 0; m < defender.pa; m++) {
           final parrySuccess = new Rational.fromInt(
@@ -223,18 +188,8 @@ class HalfACombatRound {
               20);
 
           // parry succeeded
-          addSuccessor(
-              attackerVp: defenderVp,
-              defenderVp: attackerVp,
-              attackerPenalty: 0,
-              defenderPenalty: m,
-              attackerWounds: defenderWounds,
-              defenderWounds: attackerWounds,
-              lastFeint: choice.feint,
-              lastForcefulBlow: choice.forcefulBlow,
-              lastImprovedParry: m,
-              lastManeuver: choice.maneuver,
-              successorProbability: attackSuccess * parrySuccess);
+          addSuccessor(choice, attackSuccess * parrySuccess,
+              attackerPenalty: m);
 
           // parry failed
           var noDamageCount = 0;
@@ -246,39 +201,25 @@ class HalfACombatRound {
               noDamageCount++;
             else
               addSuccessor(
-                  attackerVp: defenderVp - s,
-                  defenderVp: attackerVp,
-                  attackerPenalty: m,
-                  defenderPenalty: 0,
-                  attackerWounds: defenderWounds + wounds,
-                  defenderWounds: attackerWounds,
-                  lastFeint: choice.feint,
-                  lastForcefulBlow: choice.forcefulBlow,
-                  lastImprovedParry: m,
-                  lastManeuver: choice.maneuver,
-                  successorProbability:
-                      (_one - parrySuccess) * attackSuccess * _oneSixth);
+                  choice, (_one - parrySuccess) * attackSuccess * _oneSixth,
+                  newDamage: s,
+                  newWounds: wounds,
+                  defenderPenalty: m,
+                  lastImprovedParry: m);
           }
           // no damage inflicted
           if (noDamageCount > 0)
             addSuccessor(
-                attackerVp: defenderVp,
-                defenderVp: attackerVp,
-                attackerPenalty: m,
-                defenderPenalty: 0,
-                attackerWounds: defenderWounds,
-                defenderWounds: attackerWounds,
-                lastFeint: choice.feint,
-                lastForcefulBlow: choice.forcefulBlow,
-                lastImprovedParry: m,
-                lastManeuver: choice.maneuver,
-                successorProbability: (_one - parrySuccess) *
+                choice,
+                (_one - parrySuccess) *
                     attackSuccess *
-                    (new Rational.fromInt(noDamageCount, 6)));
+                    (new Rational.fromInt(noDamageCount, 6)),
+                defenderPenalty: m,
+                lastImprovedParry: m);
           if (!allowImprovedParry) break;
         }
       }
-      //if (maneuver == Maneuver.preciseThrust) break;
+      if (choice.maneuver == Maneuver.preciseThrust) break;
     }
 
     // angriff: +0+w+f

@@ -2,7 +2,7 @@ import 'maneuvers.dart';
 import 'model.dart';
 
 abstract class Strategy {
-  const Strategy([this.maneuvers = Maneuver.values]);
+  const Strategy(this.maneuvers);
 
   /// The maneuvers this strategy may choose from. [enumerateChoices] will never
   /// return a maneuver not in this list, but a strategy may decide to discard
@@ -14,7 +14,8 @@ abstract class Strategy {
 
 /// A strategy that explores the whole search space.
 class TotalStrategy extends Strategy {
-  const TotalStrategy([List<Maneuver> maneuvers]) : super(maneuvers);
+  const TotalStrategy([List<Maneuver> maneuvers = Maneuver.values])
+      : super(maneuvers);
 
   @override
   List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
