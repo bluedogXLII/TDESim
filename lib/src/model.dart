@@ -57,10 +57,7 @@ class PlayerChoice {
   /// If the attacker chooses to make this attack, they must roll this number or
   /// lower on a D20 to make a successful attack. This value is **not** clamped.
   int get requiredSuccessRoll =>
-      turn.attacker.at -
-      turn.attackerPenalty -
-      turn.attackerWounds * 2 -
-      attackPenalty;
+      turn.attacker.at - turn.attackerWounds * 2 - attackPenalty;
 
   /// The expected payoff of a choice is the sum over all [transitions],
   /// weighted with their probability.
@@ -91,14 +88,10 @@ class PlayerChoice {
             defender: attacker,
             attackerLostVp: turn.defenderLostVp - damage,
             defenderLostVp: turn.attackerLostVp,
-            attackerPenalty: 0,
             defenderPenalty: attackerPenalty,
             attackerWounds: turn.defenderWounds + wounds,
             defenderWounds: turn.attackerWounds,
-            lastFeint: feint,
-            lastForcefulBlow: forcefulBlow,
-            lastManeuver: maneuver,
-            probability: turn.probability * successorProbability,
+            defenderCanBlock: !maneuver.consumesDefensiveAction,
             remainingDepth: turn.remainingDepth - 1)] = successorProbability;
 
     final attackSuccess =
@@ -108,7 +101,7 @@ class PlayerChoice {
     addSuccessor(_one - attackSuccess, attackerPenalty: attackPenalty);
 
     var parrySuccess = new Rational.fromInt(0);
-    if (!turn.lastManeuver.consumesDefensiveAction) {
+    if (turn.defenderCanBlock) {
       parrySuccess = new Rational.fromInt(
           (defender.pa - feint - turn.defenderPenalty - 2 * turn.defenderWounds)
               .clamp(1, 19),
@@ -144,14 +137,10 @@ class HalfACombatRound {
   HalfACombatRound(this.attacker, this.defender, this.remainingDepth)
       : attackerLostVp = 0,
         defenderLostVp = 0,
-        attackerPenalty = 0,
         defenderPenalty = 0,
         attackerWounds = 0,
         defenderWounds = 0,
-        probability = new Rational.fromInt(1),
-        lastFeint = 0,
-        lastForcefulBlow = 0,
-        lastManeuver = Maneuver.normalAttack;
+        defenderCanBlock = true;
 
   /// Internal constructor for succeeding combat rounds.
   HalfACombatRound._(
@@ -159,23 +148,17 @@ class HalfACombatRound {
       @required this.defender,
       @required this.attackerLostVp,
       @required this.defenderLostVp,
-      @required this.attackerPenalty,
       @required this.defenderPenalty,
       @required this.attackerWounds,
       @required this.defenderWounds,
-      @required this.lastFeint,
-      @required this.lastForcefulBlow,
-      @required this.lastManeuver,
-      @required this.probability,
+      @required this.defenderCanBlock,
       @required this.remainingDepth});
 
   final Hero attacker, defender;
   final int attackerLostVp, defenderLostVp; // LeP
-  final int attackerPenalty, defenderPenalty;
+  final int defenderPenalty;
   final int attackerWounds, defenderWounds;
-  final int lastFeint, lastForcefulBlow;
-  final Maneuver lastManeuver;
-  final Rational probability;
+  final bool defenderCanBlock;
   final int remainingDepth;
 
   /// All choices that the [attacker]s [Strategy] considers, ordered by payoff
@@ -213,7 +196,7 @@ class HalfACombatRound {
   Rational _payoff;
 
   @override
-  String toString() => 'Round $remainingDepth (probability: $probability): '
+  String toString() => 'Round $remainingDepth: '
       '${attacker.name} (lost vp=$attackerLostVp, wounds=$attackerWounds) '
       'attacks '
       '${defender.name} (lost vp=$defenderLostVp, wounds=$defenderWounds)';
