@@ -107,7 +107,7 @@ Rational simulateCombat(SimulationTask task) {
   }
   watch.stop();
   print('Visited $visitedStates in ${watch.elapsedMilliseconds}ms');
-  return task.start.payoff;
+  return task.start.payoff(task.start.remainingDepth);
 }
 
 class SimulationTask {

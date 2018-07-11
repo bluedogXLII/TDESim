@@ -61,10 +61,22 @@ class PlayerChoice {
 
   /// The expected payoff of a choice is the sum over all [transitions],
   /// weighted with their probability.
-  Rational get payoff => _payoff ??= transitions.entries
-      .map((transition) => transition.key.payoff * transition.value)
-      .reduce((a, b) => a + b);
-  Rational _payoff;
+  Rational payoff(int depth) {
+    assert(
+        depth > 0,
+        'if depth == 0 then HalfACombatTurn.payoff should '
+        'have calculated the payoff itself');
+
+    if (_payoff.length < depth) {
+      _payoff.length = depth;
+    }
+    return _payoff[depth - 1] = transitions.entries
+        .map(
+            (transition) => transition.key.payoff(depth - 1) * transition.value)
+        .reduce((a, b) => a + b);
+  }
+
+  final List<Rational> _payoff = [];
 
   /// All succeeding combat rounds that have a non-zero chance of happening.
   /// The values of this map are the probabilities of this transition being
@@ -161,48 +173,42 @@ class HalfACombatRound {
   final bool defenderCanBlock;
   final int remainingDepth;
 
-  /// All choices that the [attacker]s [Strategy] considers, ordered by payoff
-  /// descending, or an empty list if [remainingDepth] is 0.
-  List<PlayerChoice> get choices => _choices ??=
-      remainingDepth == 0 ? const [] : attacker.strategy.enumerateChoices(this);
+  /// All choices that the [attacker]s [Strategy] considers.
+  List<PlayerChoice> get choices =>
+      _choices ??= attacker.strategy.enumerateChoices(this);
   List<PlayerChoice> _choices;
-
-  /// The choice with the highest payoff. Throws an [AssertionError] if this is
-  /// a leaf.
-  PlayerChoice get bestChoice {
-    assert(_choices != null);
-    assert(
-        remainingDepth > 0,
-        "Can't get the best choice of a state whose choices "
-        "shouldn't be generated (because remainingDepth == 0)");
-    if (!_choicesSorted) {
-      choices.sort(_sortChoicesDescending);
-      _choicesSorted = true;
-    }
-    return choices.first;
-  }
-
-  bool _choicesSorted = false;
 
   /// All [PlayerChoice.transitions] of all [choices].
   Iterable<HalfACombatRound> get successors =>
       choices.expand((choice) => choice.transitions.keys);
 
+  /// Returns the payoff of this state, if it is explored to a depth of [depth].
   /// The payoff is the difference between attacker and defender VP if this is a
   /// leaf, or the best payoff of all children if this is an internal node.
-  Rational get payoff => _payoff ??= remainingDepth == 0
+  Rational payoff(int depth) => depth == 0
       ? new Rational.fromInt(attackerLostVp - defenderLostVp)
-      : choices.first.payoff;
-  Rational _payoff;
+      : bestChoice(depth).payoff(depth);
+
+  /// Returns the best choice if the combat is fully explored up to [depth]
+  /// additional turns.
+  PlayerChoice bestChoice(int depth) {
+    assert(
+        depth > 0,
+        'if depth == 0 then HalfACombatTurn.payoff should '
+        'have calculated the payoff itself');
+
+    if (_bestChoice.length < depth) {
+      _bestChoice.length = depth;
+    }
+    return _bestChoice[depth - 1] ??=
+        choices.reduce((a, b) => a.payoff(depth) > b.payoff(depth) ? a : b);
+  }
+
+  final List<PlayerChoice> _bestChoice = [];
 
   @override
-  String toString() => 'Round $remainingDepth: '
+  String toString() => 'Round with mininum depth $remainingDepth: '
       '${attacker.name} (lost vp=$attackerLostVp, wounds=$attackerWounds) '
       'attacks '
       '${defender.name} (lost vp=$defenderLostVp, wounds=$defenderWounds)';
 }
-
-/// A [Comparator] that sorts the [PlayerChoice] with the highest payoff on the
-/// first position.
-int _sortChoicesDescending(PlayerChoice a, PlayerChoice b) =>
-    (b.payoff - a.payoff).signum;
