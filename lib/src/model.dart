@@ -106,6 +106,7 @@ class PlayerChoice {
         defenderPenalty: turn.defenderPenalty);
 
     if (turn.allowParry) {
+      // parry allowed
       final parrySuccess = new Rational.fromInt(
           (defender.pa - feint - turn.defenderPenalty - 2 * turn.defenderWounds)
               .clamp(1, 19),
@@ -137,6 +138,7 @@ class PlayerChoice {
         }
       }
     } else {
+      // no parry allowed
       for (var roll = 6; roll >= 1; roll--) {
         final dmg = maneuver.calculateDamage(
             attacker.hp, roll, forcefulBlow, defender.ar);

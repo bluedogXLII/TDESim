@@ -22,10 +22,8 @@ class AllStrategies extends StrategySpace {
     final result = <PlayerChoice>[];
 
     for (final maneuver in maneuvers) {
-      final maxPenalty = turn.attacker.at -
-          turn.attackerPenalty -
-          2 * turn.attackerWounds -
-          maneuver.calculatePenalty(turn.defender.ar);
+      final maxPenalty =
+          turn.attacker.at - maneuver.calculatePenalty(turn.defender.ar);
 
       for (var w = 0; w < maxPenalty; w++) {
         for (var f = 0; f < maxPenalty - w; f++) {
