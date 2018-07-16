@@ -20,28 +20,18 @@ class AllStrategies extends StrategySpace {
   @override
   List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
     final result = <PlayerChoice>[];
-    for (final maneuver in maneuvers) {
-      // Erschwernis. Wie übersetzt man das?
-      var complication = 0;
 
-      // ignore: literal_only_boolean_expressions
-      while (true) {
-        final choice = new PlayerChoice(turn, maneuver, complication, 0);
-        // TODO: Can you win an attack with success chance 0 if you roll a 1?
-        // Are you even allowed to announce that attack?
-        if (choice.requiredSuccessRoll <= 0) {
-          break;
+    for (final maneuver in maneuvers) {
+      final maxPenalty = turn.attacker.at -
+          turn.attackerPenalty -
+          2 * turn.attackerWounds -
+          maneuver.calculatePenalty(turn.defender.ar);
+
+      for (var w = 0; w < maxPenalty; w++) {
+        for (var f = 0; f < maxPenalty - w; f++) {
+          result.add(new PlayerChoice(turn, maneuver, f, w));
         }
-        // Enumerate all other distributions of [complication] onto `feint` and
-        // `forcefulBlow`
-        for (var i = 1; i <= complication; i++) {
-          // TODO: Not all maneuvers allow feint or forceful blow. Add an
-          // appropriate getter to [Maneuver] and check it here.
-          final feint = complication - i;
-          final forcefulBlow = complication - feint;
-          result.add(new PlayerChoice(turn, maneuver, feint, forcefulBlow));
-        }
-        complication++;
+        if (!maneuver.allowsForcefulBlow) break;
       }
     }
     return result;

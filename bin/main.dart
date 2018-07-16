@@ -89,8 +89,8 @@ void main(List<String> rawArgs) async {
   }
 }
 
-/// Explores all possible outcomes of this combat up to `task.depth`. Returns
-/// the time it took to build up the state tree.
+/// Explores all possible outcomes of this combat up to `task.depth`. Prints
+/// the time it took to build up the state tree. Returns the best Payoff.
 Rational simulateCombat(SimulationTask task) {
   final queue = new Queue.of([task.start]);
 
