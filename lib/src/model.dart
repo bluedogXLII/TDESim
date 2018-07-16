@@ -49,14 +49,6 @@ class PlayerChoice {
   int get attackPenalty =>
       feint + forcefulBlow + maneuver.calculatePenalty(turn.defender.ar);
 
-  /// If the attacker chooses to make this attack, they must roll this number or
-  /// lower on a D20 to make a successful attack. This value is **not** clamped.
-  int get requiredSuccessRoll =>
-      turn.attacker.at -
-      turn.attackerPenalty -
-      turn.attackerWounds * 2 -
-      attackPenalty;
-
   /// The expected payoff of a choice is the sum over all [transitions],
   /// weighted with their probability.
   Rational get payoff => _payoff ??= transitions.entries
@@ -72,21 +64,22 @@ class PlayerChoice {
   Map<HalfACombatRound, Rational> _transitions;
 
   Map<HalfACombatRound, Rational> _calculateTransitions() {
-    assert(requiredSuccessRoll > 0);
-
     final attacker = turn.attacker;
     final defender = turn.defender;
     final result = <HalfACombatRound, Rational>{};
 
     /// [attackerPenalty] is for the attacker in **this** turn, not the next!
     void addSuccessor(Rational successorProbability,
-            {int damage: 0, int wounds: 0, int attackerPenalty: 0}) =>
+            {@required int damage,
+            @required int wounds,
+            @required int attackerPenalty,
+            @required int defenderPenalty}) =>
         result[new HalfACombatRound._(
             attacker: defender,
             defender: attacker,
-            attackerLostVp: turn.defenderLostVp - damage,
+            attackerLostVp: turn.defenderLostVp + damage,
             defenderLostVp: turn.attackerLostVp,
-            attackerPenalty: 0,
+            attackerPenalty: defenderPenalty,
             defenderPenalty: attackerPenalty,
             attackerWounds: turn.defenderWounds + wounds,
             defenderWounds: turn.attackerWounds,
@@ -94,35 +87,72 @@ class PlayerChoice {
             probability: turn.probability * successorProbability,
             remainingDepth: turn.remainingDepth - 1)] = successorProbability;
 
-    final attackSuccess =
-        new Rational.fromInt(requiredSuccessRoll.clamp(1, 19), 20);
+    final attackSuccess = new Rational.fromInt(
+        (turn.attacker.at -
+                turn.attackerPenalty -
+                turn.attackerWounds * 2 -
+                attackPenalty)
+            .clamp(1, 19),
+        20);
 
     // attack failed
-    addSuccessor(_one - attackSuccess, attackerPenalty: attackPenalty);
+    addSuccessor(_one - attackSuccess,
+        damage: 0,
+        wounds: 0,
+        attackerPenalty: maneuver.calculateAttackerPenalty(feint, forcefulBlow),
+        defenderPenalty: turn.defenderPenalty);
 
-    var parrySuccess = new Rational.fromInt(0);
     if (turn.allowParry) {
-      parrySuccess = new Rational.fromInt(
+      final parrySuccess = new Rational.fromInt(
           (defender.pa - feint - turn.defenderPenalty - 2 * turn.defenderWounds)
               .clamp(1, 19),
           20);
 
       // parry succeeded
-      addSuccessor(attackSuccess * parrySuccess);
-    }
+      addSuccessor(attackSuccess * parrySuccess,
+          damage: 0, wounds: 0, attackerPenalty: 0, defenderPenalty: 0);
 
-    final hitSuccess = attackSuccess * (_one - parrySuccess);
-    for (var roll = 6; roll >= 1; roll--) {
-      final dmg = maneuver.calculateDamage(
-          attacker.hp, roll, forcefulBlow, defender.ar);
-      if (dmg > 0) {
-        // attack succeeded
-        addSuccessor(hitSuccess * _oneSixth,
-            damage: dmg, wounds: maneuver.calculateWounds(dmg, defender.wt));
-      } else {
-        // no damage dealt
-        addSuccessor(hitSuccess * new Rational.fromInt(roll, 6));
-        break;
+      final hitSuccess = attackSuccess * (_one - parrySuccess);
+      for (var roll = 6; roll >= 1; roll--) {
+        final dmg = maneuver.calculateDamage(
+            attacker.hp, roll, forcefulBlow, defender.ar);
+        if (dmg > 0) {
+          // attack succeeded
+          addSuccessor(hitSuccess * _oneSixth,
+              damage: dmg,
+              wounds: maneuver.calculateWounds(dmg, defender.wt),
+              attackerPenalty: 0,
+              defenderPenalty: 0);
+        } else {
+          // no damage dealt
+          addSuccessor(hitSuccess * new Rational.fromInt(roll, 6),
+              damage: 0,
+              wounds: maneuver.calculateWounds(0, turn.defender.wt),
+              attackerPenalty: 0,
+              defenderPenalty: 0);
+          break;
+        }
+      }
+    } else {
+      for (var roll = 6; roll >= 1; roll--) {
+        final dmg = maneuver.calculateDamage(
+            attacker.hp, roll, forcefulBlow, defender.ar);
+        if (dmg > 0) {
+          // attack succeeded
+          addSuccessor(attackSuccess * _oneSixth,
+              damage: dmg,
+              wounds: maneuver.calculateWounds(dmg, defender.wt),
+              attackerPenalty: 0,
+              defenderPenalty: turn.defenderPenalty);
+        } else {
+          // no damage dealt
+          addSuccessor(attackSuccess * new Rational.fromInt(roll, 6),
+              damage: 0,
+              wounds: maneuver.calculateWounds(0, turn.defender.wt),
+              attackerPenalty: 0,
+              defenderPenalty: turn.defenderPenalty);
+          break;
+        }
       }
     }
 
@@ -198,7 +228,7 @@ class HalfACombatRound {
   /// leaf, or the best payoff of all children if this is an internal node.
   Rational get payoff => _payoff ??= remainingDepth == 0
       ? new Rational.fromInt(attackerLostVp - defenderLostVp)
-      : choices.first.payoff;
+      : bestChoice.payoff;
   Rational _payoff;
 
   @override

@@ -18,6 +18,8 @@ abstract class Maneuver {
 
   int calculatePenalty(int defenderAr);
 
+  int calculateAttackerPenalty(int feint, int forcefulBlow);
+
   int calculateDamage(
       int attackerHp, int attackRoll, int forcefulBlow, int defenderAr);
 
@@ -35,6 +37,10 @@ class NormalAttack extends Maneuver {
 
   @override
   int calculatePenalty(int defenderAr) => 0;
+
+  @override
+  int calculateAttackerPenalty(int feint, int forcefulBlow) =>
+      feint + forcefulBlow;
 
   @override
   int calculateDamage(
@@ -59,6 +65,10 @@ class PreciseThrust extends Maneuver {
   int calculatePenalty(int defenderAr) => 4 + (defenderAr / 2).round();
 
   @override
+  int calculateAttackerPenalty(int feint, int forcefulBlow) =>
+      4 + feint + forcefulBlow;
+
+  @override
   int calculateDamage(
           int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
       attackerHp + attackRoll;
@@ -81,6 +91,10 @@ class DeadlyThrust extends Maneuver {
   int calculatePenalty(int defenderAr) => 8 + (defenderAr / 2).round();
 
   @override
+  int calculateAttackerPenalty(int feint, int forcefulBlow) =>
+      8 + feint + forcefulBlow;
+
+  @override
   int calculateDamage(
           int attackerHp, int attackRoll, int forcefulBlow, int defenderAr) =>
       attackerHp + attackRoll + forcefulBlow;
@@ -101,6 +115,10 @@ class HammerBlow extends Maneuver {
 
   @override
   int calculatePenalty(int defenderAr) => 8;
+
+  @override
+  int calculateAttackerPenalty(int feint, int forcefulBlow) =>
+      8 + feint + forcefulBlow;
 
   @override
   int calculateDamage(
