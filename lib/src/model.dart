@@ -51,8 +51,12 @@ class PlayerChoice {
 
   /// The expected payoff of a choice is the sum over all [transitions],
   /// weighted with their probability.
+  /// The positive payoff of a PlayerChoice benefits the current attacker
+  /// and must therefore be inversely related to the payoff of the next
+  /// rounds, the payoff of which benefits the defender of the current
+  /// round.
   Rational get payoff => _payoff ??= transitions.entries
-      .map((transition) => transition.key.payoff * transition.value)
+      .map((transition) => -transition.key.payoff * transition.value)
       .reduce((a, b) => a + b);
   Rational _payoff;
 
@@ -226,13 +230,15 @@ class HalfACombatRound {
 
   /// The payoff is the difference between attacker and defender VP if this is a
   /// leaf, or the best payoff of all children if this is an internal node.
+  /// A positive Payoff benefits the attacker of the current round.
   Rational get payoff => _payoff ??= remainingDepth == 0
-      ? new Rational.fromInt(attackerLostVp - defenderLostVp)
+      ? new Rational.fromInt(defenderLostVp - attackerLostVp)
       : bestChoice.payoff;
   Rational _payoff;
 
   @override
-  String toString() => 'Round $remainingDepth (probability: $probability): '
+  String toString() =>
+      '$remainingDepth rounds to go (probability: $probability): '
       '${attacker.name} (lost vp=$attackerLostVp, wounds=$attackerWounds) '
       'attacks '
       '${defender.name} (lost vp=$defenderLostVp, wounds=$defenderWounds)';
