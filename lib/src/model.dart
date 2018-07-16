@@ -88,7 +88,6 @@ class PlayerChoice {
             attackerWounds: turn.defenderWounds + wounds,
             defenderWounds: turn.attackerWounds,
             allowParry: !maneuver.consumesDefensiveAction,
-            probability: turn.probability * successorProbability,
             remainingDepth: turn.remainingDepth - 1)] = successorProbability;
 
     final attackSuccess = new Rational.fromInt(
@@ -179,7 +178,6 @@ class HalfACombatRound {
         defenderPenalty = 0,
         attackerWounds = 0,
         defenderWounds = 0,
-        probability = new Rational.fromInt(1),
         allowParry = true;
 
   /// Internal constructor for succeeding combat rounds.
@@ -193,7 +191,6 @@ class HalfACombatRound {
       @required this.attackerWounds,
       @required this.defenderWounds,
       @required this.allowParry,
-      @required this.probability,
       @required this.remainingDepth});
 
   final Hero attacker, defender;
@@ -201,7 +198,6 @@ class HalfACombatRound {
   final int attackerPenalty, defenderPenalty;
   final int attackerWounds, defenderWounds;
   final bool allowParry;
-  final Rational probability;
   final int remainingDepth;
 
   /// All choices that the [attacker]s [StrategySpace] considers, ordered by payoff
@@ -228,10 +224,6 @@ class HalfACombatRound {
 
   bool _choicesSorted = false;
 
-  /// All [PlayerChoice.transitions] of all [choices].
-  Iterable<HalfACombatRound> get successors =>
-      choices.expand((choice) => choice.transitions.keys);
-
   /// The payoff is the difference between attacker and defender VP if this is a
   /// leaf, or the best payoff of all children if this is an internal node.
   /// A positive Payoff benefits the attacker of the current round.
@@ -241,8 +233,7 @@ class HalfACombatRound {
   Rational _payoff;
 
   @override
-  String toString() =>
-      '$remainingDepth rounds to go (probability: $probability): '
+  String toString() => '$remainingDepth rounds to go: '
       '${attacker.name} (lost vp=$attackerLostVp, wounds=$attackerWounds) '
       'attacks '
       '${defender.name} (lost vp=$defenderLostVp, wounds=$defenderWounds)';
