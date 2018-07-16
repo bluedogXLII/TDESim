@@ -47,7 +47,7 @@ void main(List<String> rawArgs) async {
   for (final hero in config['heroes']) {
     heroes.add(new Hero(
         hero['name'],
-        const TotalStrategy(
+        const AllStrategies(
             const [Maneuver.normalAttack, Maneuver.preciseThrust]),
         vi: hero['vi'],
         wt: hero['wt'],

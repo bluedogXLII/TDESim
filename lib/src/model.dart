@@ -31,9 +31,9 @@ class Hero {
   /// number than this on a D20.
   final int pa;
 
-  final Strategy strategy;
+  final StrategySpace strategySpace;
 
-  Hero(this.name, this.strategy,
+  Hero(this.name, this.strategySpace,
       {@required this.vi,
       @required this.wt,
       @required this.ar,
@@ -178,10 +178,11 @@ class HalfACombatRound {
   final Rational probability;
   final int remainingDepth;
 
-  /// All choices that the [attacker]s [Strategy] considers, ordered by payoff
+  /// All choices that the [attacker]s [StrategySpace] considers, ordered by payoff
   /// descending, or an empty list if [remainingDepth] is 0.
-  List<PlayerChoice> get choices => _choices ??=
-      remainingDepth == 0 ? const [] : attacker.strategy.enumerateChoices(this);
+  List<PlayerChoice> get choices => _choices ??= remainingDepth == 0
+      ? const []
+      : attacker.strategySpace.enumerateChoices(this);
   List<PlayerChoice> _choices;
 
   /// The choice with the highest payoff. Throws an [AssertionError] if this is
