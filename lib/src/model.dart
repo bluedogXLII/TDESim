@@ -10,10 +10,6 @@ final Rational _oneSixth = new Rational.fromInt(1, 6);
 class Hero {
   final String name;
 
-  /// vitality (Le): The starting vitality points.
-  @deprecated
-  final int vi;
-
   ///wound threshold: WS
   final int wt;
 
@@ -34,8 +30,7 @@ class Hero {
   final StrategySpace strategySpace;
 
   Hero(this.name, this.strategySpace,
-      {@required this.vi,
-      @required this.wt,
+      {@required this.wt,
       @required this.ar,
       @required this.hp,
       @required this.at,
@@ -95,9 +90,7 @@ class PlayerChoice {
             defenderPenalty: attackerPenalty,
             attackerWounds: turn.defenderWounds + wounds,
             defenderWounds: turn.attackerWounds,
-            lastFeint: feint,
-            lastForcefulBlow: forcefulBlow,
-            lastManeuver: maneuver,
+            allowParry: !maneuver.consumesDefensiveAction,
             probability: turn.probability * successorProbability,
             remainingDepth: turn.remainingDepth - 1)] = successorProbability;
 
@@ -108,7 +101,7 @@ class PlayerChoice {
     addSuccessor(_one - attackSuccess, attackerPenalty: attackPenalty);
 
     var parrySuccess = new Rational.fromInt(0);
-    if (!turn.lastManeuver.consumesDefensiveAction) {
+    if (turn.allowParry) {
       parrySuccess = new Rational.fromInt(
           (defender.pa - feint - turn.defenderPenalty - 2 * turn.defenderWounds)
               .clamp(1, 19),
@@ -149,9 +142,7 @@ class HalfACombatRound {
         attackerWounds = 0,
         defenderWounds = 0,
         probability = new Rational.fromInt(1),
-        lastFeint = 0,
-        lastForcefulBlow = 0,
-        lastManeuver = Maneuver.normalAttack;
+        allowParry = true;
 
   /// Internal constructor for succeeding combat rounds.
   HalfACombatRound._(
@@ -163,9 +154,7 @@ class HalfACombatRound {
       @required this.defenderPenalty,
       @required this.attackerWounds,
       @required this.defenderWounds,
-      @required this.lastFeint,
-      @required this.lastForcefulBlow,
-      @required this.lastManeuver,
+      @required this.allowParry,
       @required this.probability,
       @required this.remainingDepth});
 
@@ -173,8 +162,7 @@ class HalfACombatRound {
   final int attackerLostVp, defenderLostVp; // LeP
   final int attackerPenalty, defenderPenalty;
   final int attackerWounds, defenderWounds;
-  final int lastFeint, lastForcefulBlow;
-  final Maneuver lastManeuver;
+  final bool allowParry;
   final Rational probability;
   final int remainingDepth;
 

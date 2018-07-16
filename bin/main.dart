@@ -49,7 +49,6 @@ void main(List<String> rawArgs) async {
         hero['name'],
         const AllStrategies(
             const [Maneuver.normalAttack, Maneuver.preciseThrust]),
-        vi: hero['vi'],
         wt: hero['wt'],
         ar: hero['ar'],
         hp: hero['hp'],
