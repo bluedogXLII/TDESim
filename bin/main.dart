@@ -47,8 +47,12 @@ void main(List<String> rawArgs) async {
   for (final hero in config['heroes']) {
     heroes.add(new Hero(
         hero['name'],
-        const AllStrategies(
-            const [Maneuver.normalAttack, Maneuver.preciseThrust]),
+        const AllStrategies(const [
+          Maneuver.normalAttack,
+          Maneuver.preciseThrust,
+          Maneuver.deadlyThrust,
+          Maneuver.hammerBlow
+        ]),
         wt: hero['wt'],
         ar: hero['ar'],
         hp: hero['hp'],
@@ -56,9 +60,9 @@ void main(List<String> rawArgs) async {
         pa: hero['pa']));
   }
   final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0], depth)
-      .successors
-      .map((combatRound) => new SimulationTask(combatRound, verbose)));
-  final results = <MapEntry<HalfACombatRound, Rational>>[];
+      .choices
+      .map((choice) => new SimulationTask(choice, verbose)));
+  final results = <MapEntry<PlayerChoice, Rational>>[];
 
   Future<void> runWorker([int workerNumber]) async {
     // Short explanation of how isolates communicate:
@@ -83,7 +87,7 @@ void main(List<String> rawArgs) async {
   watch.stop();
   print('total program runtime: ${watch.elapsed}');
 
-  for (final result in results.reversed) {
+  for (final result in results) {
     print('with payoff ${result.value.toDouble()}: ${result.key}');
   }
 }
@@ -96,12 +100,12 @@ Rational simulateCombat(SimulationTask task) {
   final watch = new Stopwatch()..start();
   var visitedStates = 0;
   while (queue.isNotEmpty) {
-    final state = queue.removeFirst();
+    final choice = queue.removeFirst();
     visitedStates++;
-    if (state.remainingDepth == 0) {
-      if (task.verbose) print(state);
+    if (choice.turn.remainingDepth == 0) {
+      if (task.verbose) print(choice);
     } else {
-      queue.addAll(state.successors);
+      queue.addAll(choice.transitions.keys.expand((round) => round.choices));
     }
   }
   watch.stop();
@@ -112,6 +116,6 @@ Rational simulateCombat(SimulationTask task) {
 class SimulationTask {
   SimulationTask(this.start, this.verbose);
 
-  final HalfACombatRound start;
+  final PlayerChoice start;
   final bool verbose;
 }

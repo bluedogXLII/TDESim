@@ -164,6 +164,10 @@ class PlayerChoice {
         'The sum of all probablities must be 1');
     return result;
   }
+
+  @override
+  String toString() =>
+      'maneuver: $maneuver, feint: $feint, forcefulBlow: $forcefulBlow';
 }
 
 class HalfACombatRound {
