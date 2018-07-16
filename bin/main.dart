@@ -45,14 +45,7 @@ void main(List<String> rawArgs) async {
 
   final heroes = <Hero>[];
   for (final hero in config['heroes']) {
-    heroes.add(new Hero(
-        hero['name'],
-        const AllStrategies(const [
-          Maneuver.normalAttack,
-          Maneuver.preciseThrust,
-          Maneuver.deadlyThrust,
-          Maneuver.hammerBlow
-        ]),
+    heroes.add(new Hero(hero['name'], new ShortSightedStrategy(),
         wt: hero['wt'],
         ar: hero['ar'],
         hp: hero['hp'],
