@@ -14,8 +14,8 @@ abstract class StrategySpace {
 }
 
 /// All possible strategies.
-class AllStrategies extends StrategySpace {
-  AllStrategies() : super(Maneuver.values);
+class AllAttacks extends StrategySpace {
+  AllAttacks() : super(Maneuver.values);
 
   @override
   List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
@@ -53,8 +53,8 @@ class NormalAttacks extends StrategySpace {
   }
 }
 
-class ShortSightedStrategy extends StrategySpace {
-  ShortSightedStrategy() : super([Maneuver.normalAttack]);
+class ShortSightedAttacks extends StrategySpace {
+  ShortSightedAttacks() : super([Maneuver.normalAttack]);
 
   final Rational _zero = new Rational.fromInt(0);
   final Rational _one400th = new Rational.fromInt(1, 400);
@@ -126,5 +126,14 @@ class ShortSightedStrategy extends StrategySpace {
     }
 
     return [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)]; // (i, ii)
+  }
+}
+
+class StandardAttacks extends StrategySpace {
+  StandardAttacks() : super([Maneuver.normalAttack]);
+
+  @override
+  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
+    return [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
   }
 }

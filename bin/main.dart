@@ -45,7 +45,7 @@ void main(List<String> rawArgs) async {
 
   final heroes = <Hero>[];
   for (final hero in config['heroes']) {
-    heroes.add(new Hero(hero['name'], new ShortSightedStrategy(),
+    heroes.add(new Hero(hero['name'], new ShortSightedAttacks(),
         wt: hero['wt'],
         ar: hero['ar'],
         hp: hero['hp'],
