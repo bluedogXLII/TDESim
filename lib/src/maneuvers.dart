@@ -49,7 +49,7 @@ class NormalAttack extends Maneuver {
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
-      (rawDmg / defenderWt * 2).floor().clamp(0, 3);
+      (rawDmg / defenderWt).floor().clamp(0, 3);
 
   @override
   String toString() => 'Normal Attack';
@@ -78,7 +78,7 @@ class PreciseThrust extends Maneuver {
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
-      (rawDmg / (defenderWt - 2) * 2).floor().clamp(0, 3) + 1;
+      (rawDmg / (defenderWt - 2)).floor().clamp(0, 3) + 1;
 
   @override
   String toString() => 'Precise Thrust';
@@ -107,7 +107,7 @@ class DeadlyThrust extends Maneuver {
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
-      (rawDmg / (defenderWt - 2) * 2).floor().clamp(0, 3) + 2;
+      (rawDmg / (defenderWt - 2)).floor().clamp(0, 3) + 2;
 
   @override
   String toString() => 'Deadly Thrust';
@@ -136,7 +136,7 @@ class HammerBlow extends Maneuver {
 
   @override
   int calculateWounds(int rawDmg, int defenderWt) =>
-      (rawDmg / defenderWt * 2).floor().clamp(0, 3);
+      (rawDmg / defenderWt).floor().clamp(0, 3);
 
   @override
   String toString() => 'Hammer Blow';
