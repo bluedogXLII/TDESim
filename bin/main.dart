@@ -56,9 +56,9 @@ void main(List<String> rawArgs) async {
         at: hero['at'],
         pa: hero['pa']));
   }
-  final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0], depth)
+  final tasks = new Queue.of(new HalfACombatRound(heroes[0], heroes[0])
       .successors
-      .map((combatRound) => new SimulationTask(combatRound, verbose)));
+      .map((combatRound) => new SimulationTask(combatRound, depth, verbose)));
   final results = <MapEntry<HalfACombatRound, Rational>>[];
 
   Future<void> runWorker([int workerNumber]) async {
@@ -73,6 +73,10 @@ void main(List<String> rawArgs) async {
     }
     runner.close();
   }
+
+  // Delete this reference because it is no longer needed and would only
+  // increase the data that has to be sent. This is a hack.
+  tasks.first.start.discovered.clear();
 
   await Future.wait(new List.generate(parallelism, runWorker));
   results.sort((a, b) {
@@ -92,27 +96,18 @@ void main(List<String> rawArgs) async {
 /// Explores all possible outcomes of this combat up to `task.depth`. Returns
 /// the time it took to build up the state tree.
 Rational simulateCombat(SimulationTask task) {
-  final queue = new Queue.of([task.start]);
-
   final watch = new Stopwatch()..start();
-  var visitedStates = 0;
-  while (queue.isNotEmpty) {
-    final state = queue.removeFirst();
-    visitedStates++;
-    if (state.remainingDepth == 0) {
-      if (task.verbose) print(state);
-    } else {
-      queue.addAll(state.successors);
-    }
-  }
+  final payoff = task.start.payoff(task.depth);
   watch.stop();
-  print('Visited $visitedStates in ${watch.elapsedMilliseconds}ms');
-  return task.start.payoff(task.start.remainingDepth);
+  print('Visited ${task.start.discovered.length} '
+      'in ${watch.elapsedMilliseconds}ms');
+  return payoff;
 }
 
 class SimulationTask {
-  SimulationTask(this.start, this.verbose);
+  SimulationTask(this.start, this.depth, this.verbose);
 
   final HalfACombatRound start;
+  final int depth;
   final bool verbose;
 }
