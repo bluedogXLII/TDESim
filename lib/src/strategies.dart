@@ -1,4 +1,5 @@
 import 'package:rational/rational.dart';
+
 import 'maneuvers.dart';
 import 'model.dart';
 
@@ -79,14 +80,11 @@ class ShortSightedAttacks extends StrategySpace {
 
     final w = _oneThird * (a + p - s - s);
     final f = _oneThird * (a + s - p - p);
-    var expectedMax = _zero;
-    int intW, intF;
     if (_zero <= w && _zero <= f && f <= _nineteen - p) {
-      for (var wTemp in [w.floorToDouble().toInt(), w.ceilToDouble().toInt()]) {
-        for (var fTemp in [
-          f.floorToDouble().toInt(),
-          f.ceilToDouble().toInt()
-        ]) {
+      var expectedMax = _zero;
+      int intW, intF;
+      for (var wTemp in [w.floor().toInt(), w.ceil().toInt()]) {
+        for (var fTemp in [f.floor().toInt(), f.ceil().toInt()]) {
           if (expectedMaxFunction(a, p, s, w, f) > expectedMax) {
             intW = wTemp;
             intF = fTemp;
@@ -103,24 +101,24 @@ class ShortSightedAttacks extends StrategySpace {
       if (a >= p) {
         return [
           new PlayerChoice(turn, Maneuver.normalAttack,
-              (_oneHalf * (a - s)).roundToDouble().toInt(), 0)
+              (_oneHalf * (a - s)).round().toInt(), 0)
         ]; // (ii)
       } else if (a >= s) {
         return [
           new PlayerChoice(turn, Maneuver.normalAttack, 0,
-              (_oneHalf * (a - p)).roundToDouble().toInt())
+              (_oneHalf * (a - p)).round().toInt())
         ]; // (i)
       }
     } else {
       if (a >= s) {
         return [
           new PlayerChoice(turn, Maneuver.normalAttack, 0,
-              (_oneHalf * (a - p)).roundToDouble().toInt())
+              (_oneHalf * (a - p)).round().toInt())
         ]; // (i)
       } else if (a >= p) {
         return [
           new PlayerChoice(turn, Maneuver.normalAttack,
-              (_oneHalf * (a - s)).roundToDouble().toInt(), 0)
+              (_oneHalf * (a - s)).round().toInt(), 0)
         ]; // (ii)
       }
     }
@@ -133,7 +131,6 @@ class StandardAttacks extends StrategySpace {
   StandardAttacks() : super([Maneuver.normalAttack]);
 
   @override
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
-    return [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
-  }
+  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) =>
+      [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
 }
