@@ -6,3 +6,4 @@ dependencies:
   rational: "^0.2.0"
   trotter: any
   yaml: any
+  quiver: any

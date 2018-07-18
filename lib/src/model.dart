@@ -1,11 +1,18 @@
 import 'package:meta/meta.dart';
+import 'package:quiver/core.dart';
 import 'package:rational/rational.dart';
 
 import 'maneuvers.dart';
 import 'strategies.dart';
 
+final Rational _zero = new Rational.fromInt(0);
 final Rational _one = new Rational.fromInt(1);
 final Rational _oneSixth = new Rational.fromInt(1, 6);
+
+/// Global variables are ugly, but this one is just used to get a better
+/// understanding of the performance implications of
+/// [HalfACombatRound.discovered]. We should delete it soon.
+var duplicates = 0;
 
 class Hero {
   final String name;
@@ -55,10 +62,24 @@ class PlayerChoice {
   /// and must therefore be inversely related to the payoff of the next
   /// rounds, the payoff of which benefits the defender of the current
   /// round.
-  Rational get payoff => _payoff ??= transitions.entries
-      .map((transition) => -transition.key.payoff * transition.value)
-      .reduce((a, b) => a + b);
-  Rational _payoff;
+  Rational payoff(int depth) {
+    assert(
+        depth > 0,
+        'if depth == 0 then HalfACombatTurn.payoff should '
+        'have calculated the payoff itself');
+
+    if (_payoff.length < depth) {
+      _payoff.length = depth;
+    }
+    return _payoff[depth - 1] ??= transitions.entries
+        .map((transition) =>
+            -transition.key.payoff(depth - 1) * transition.value)
+        .reduce((a, b) => a + b);
+  }
+
+  /// Cached payoff values for each depth; the payoff for depth 1 is stored at
+  /// index 0.
+  final List<Rational> _payoff = [];
 
   /// All succeeding combat rounds that have a non-zero chance of happening.
   /// The values of this map are the probabilities of this transition being
@@ -74,21 +95,32 @@ class PlayerChoice {
 
     /// [attackerPenalty] is for the attacker in **this** turn, not the next!
     void addSuccessor(Rational successorProbability,
-            {@required int damage,
-            @required int wounds,
-            @required int attackerPenalty,
-            @required int defenderPenalty}) =>
-        result[new HalfACombatRound._(
-            attacker: defender,
-            defender: attacker,
-            attackerLostVp: turn.defenderLostVp + damage,
-            defenderLostVp: turn.attackerLostVp,
-            attackerPenalty: defenderPenalty,
-            defenderPenalty: attackerPenalty,
-            attackerWounds: turn.defenderWounds + wounds,
-            defenderWounds: turn.attackerWounds,
-            allowParry: !maneuver.consumesDefensiveAction,
-            remainingDepth: turn.remainingDepth - 1)] = successorProbability;
+        {@required int damage,
+        @required int wounds,
+        @required int attackerPenalty,
+        @required int defenderPenalty}) {
+      var state = new HalfACombatRound._(
+          attacker: defender,
+          defender: attacker,
+          attackerLostVp: turn.defenderLostVp + damage,
+          defenderLostVp: turn.attackerLostVp,
+          attackerPenalty: defenderPenalty,
+          defenderPenalty: attackerPenalty,
+          attackerWounds: turn.defenderWounds + wounds,
+          defenderWounds: turn.attackerWounds,
+          allowParry: !maneuver.consumesDefensiveAction,
+          discovered: turn.discovered);
+      final duplicate = turn.discovered.lookup(state);
+      if (duplicate != null) {
+        state = duplicate;
+        duplicates++;
+      } else {
+        turn.discovered.add(state);
+      }
+
+      result.putIfAbsent(state, () => _zero);
+      result[state] += successorProbability;
+    }
 
     final attackSuccess = new Rational.fromInt(
         (turn.attacker.at -
@@ -173,14 +205,17 @@ class PlayerChoice {
 
 class HalfACombatRound {
   /// Creates a new combat round for a new combat.
-  HalfACombatRound(this.attacker, this.defender, this.remainingDepth)
+  HalfACombatRound(this.attacker, this.defender)
       : attackerLostVp = 0,
         defenderLostVp = 0,
         attackerPenalty = 0,
         defenderPenalty = 0,
         attackerWounds = 0,
         defenderWounds = 0,
-        allowParry = true;
+        allowParry = true,
+        discovered = new Set() {
+    discovered.add(this);
+  }
 
   /// Internal constructor for succeeding combat rounds.
   HalfACombatRound._(
@@ -193,55 +228,75 @@ class HalfACombatRound {
       @required this.attackerWounds,
       @required this.defenderWounds,
       @required this.allowParry,
-      @required this.remainingDepth});
+      @required this.discovered});
 
   final Hero attacker, defender;
   final int attackerLostVp, defenderLostVp; // LeP
   final int attackerPenalty, defenderPenalty;
   final int attackerWounds, defenderWounds;
   final bool allowParry;
-  final int remainingDepth;
+  final Set<HalfACombatRound> discovered;
 
-  /// All choices that the [attacker]s [StrategySpace] considers, ordered by payoff
-  /// descending, or an empty list if [remainingDepth] is 0.
-  List<PlayerChoice> get choices => _choices ??= remainingDepth == 0
-      ? const []
-      : attacker.strategySpace.enumerateChoices(this);
+  /// All choices that the [attacker]s [StrategySpace] considers, unordered.
+  List<PlayerChoice> get choices =>
+      _choices ??= attacker.strategySpace.enumerateChoices(this);
   List<PlayerChoice> _choices;
 
-  /// The choice with the highest payoff. Throws an [AssertionError] if this is
-  /// a leaf.
-  PlayerChoice get bestChoice {
-    assert(_choices != null);
+  /// Returns the best choice if the combat is fully explored up to [depth]
+  /// additional turns.
+  PlayerChoice bestChoice(int depth) {
     assert(
-        remainingDepth > 0,
-        "Can't get the best choice of a state whose choices "
-        "shouldn't be generated (because remainingDepth == 0)");
-    if (!_choicesSorted) {
-      choices.sort(_sortChoicesDescending);
-      _choicesSorted = true;
+        depth > 0,
+        'if depth == 0 then HalfACombatTurn.payoff should '
+        'have calculated the payoff itself');
+
+    if (_bestChoice.length < depth) {
+      _bestChoice.length = depth;
     }
-    return choices.first;
+    return _bestChoice[depth - 1] ??=
+        choices.reduce((a, b) => a.payoff(depth) > b.payoff(depth) ? a : b);
   }
 
-  bool _choicesSorted = false;
+  final List<PlayerChoice> _bestChoice = [];
 
   /// The payoff is the difference between attacker and defender VP if this is a
   /// leaf, or the best payoff of all children if this is an internal node.
   /// A positive Payoff benefits the attacker of the current round.
-  Rational get payoff => _payoff ??= remainingDepth == 0
-      ? new Rational.fromInt(defenderLostVp - attackerLostVp)
-      : bestChoice.payoff;
-  Rational _payoff;
+  Rational payoff(int depth) {
+    if (depth == 0) {
+      return new Rational.fromInt(attackerLostVp - defenderLostVp);
+    } else {
+      return bestChoice(depth).payoff(depth);
+    }
+  }
 
   @override
-  String toString() => '$remainingDepth rounds to go: '
+  bool operator ==(Object other) =>
+      other is HalfACombatRound &&
+      attacker == other.attacker &&
+      defender == other.defender &&
+      attackerLostVp == other.attackerLostVp &&
+      defenderLostVp == other.defenderLostVp &&
+      defenderPenalty == other.defenderPenalty &&
+      attackerWounds == other.attackerWounds &&
+      defenderWounds == other.defenderWounds &&
+      allowParry == other.allowParry;
+
+  @override
+  int get hashCode => hashObjects([
+        attacker,
+        defender,
+        attackerLostVp,
+        defenderLostVp,
+        defenderPenalty,
+        attackerWounds,
+        defenderWounds,
+        allowParry
+      ]);
+
+  @override
+  String toString() =>
       '${attacker.name} (lost vp=$attackerLostVp, wounds=$attackerWounds) '
       'attacks '
       '${defender.name} (lost vp=$defenderLostVp, wounds=$defenderWounds)';
 }
-
-/// A [Comparator] that sorts the [PlayerChoice] with the highest payoff on the
-/// first position.
-int _sortChoicesDescending(PlayerChoice a, PlayerChoice b) =>
-    (b.payoff - a.payoff).signum;
