@@ -11,7 +11,7 @@ final Rational _oneSixth = new Rational.fromInt(1, 6);
 
 /// Global variables are ugly, but this one is just used to get a better
 /// understanding of the performance implications of
-/// [HalfACombatRound.discovered]. We should delete it soon.
+/// [CombatTurn.discovered]. We should delete it soon.
 var duplicates = 0;
 
 class Hero {
@@ -47,7 +47,7 @@ class Hero {
 class PlayerChoice {
   PlayerChoice(this.turn, this.maneuver, this.feint, this.forcefulBlow);
 
-  final HalfACombatRound turn;
+  final CombatTurn turn;
   final Maneuver maneuver;
   final int feint;
   final int forcefulBlow;
@@ -84,14 +84,14 @@ class PlayerChoice {
   /// All succeeding combat rounds that have a non-zero chance of happening.
   /// The values of this map are the probabilities of this transition being
   /// taken, in the range (0, 1].
-  Map<HalfACombatRound, Rational> get transitions =>
+  Map<CombatTurn, Rational> get transitions =>
       _transitions ??= _calculateTransitions();
-  Map<HalfACombatRound, Rational> _transitions;
+  Map<CombatTurn, Rational> _transitions;
 
-  Map<HalfACombatRound, Rational> _calculateTransitions() {
+  Map<CombatTurn, Rational> _calculateTransitions() {
     final attacker = turn.attacker;
     final defender = turn.defender;
-    final result = <HalfACombatRound, Rational>{};
+    final result = <CombatTurn, Rational>{};
 
     /// [attackerPenalty] is for the attacker in **this** turn, not the next!
     void addSuccessor(Rational successorProbability,
@@ -99,7 +99,7 @@ class PlayerChoice {
         @required int wounds,
         @required int attackerPenalty,
         @required int defenderPenalty}) {
-      var state = new HalfACombatRound._(
+      var state = new CombatTurn._(
           attacker: defender,
           defender: attacker,
           attackerLostVp: turn.defenderLostVp + damage,
@@ -118,7 +118,7 @@ class PlayerChoice {
         turn.discovered.add(state);
       }
 
-      result.putIfAbsent(state, () => _zero);
+      result[state] ??= _zero;
       result[state] += successorProbability;
     }
 
@@ -203,9 +203,9 @@ class PlayerChoice {
       'maneuver: $maneuver, feint: $feint, forcefulBlow: $forcefulBlow';
 }
 
-class HalfACombatRound {
+class CombatTurn {
   /// Creates a new combat round for a new combat.
-  HalfACombatRound(this.attacker, this.defender)
+  CombatTurn(this.attacker, this.defender)
       : attackerLostVp = 0,
         defenderLostVp = 0,
         attackerPenalty = 0,
@@ -218,7 +218,7 @@ class HalfACombatRound {
   }
 
   /// Internal constructor for succeeding combat rounds.
-  HalfACombatRound._(
+  CombatTurn._(
       {@required this.attacker,
       @required this.defender,
       @required this.attackerLostVp,
@@ -235,7 +235,7 @@ class HalfACombatRound {
   final int attackerPenalty, defenderPenalty;
   final int attackerWounds, defenderWounds;
   final bool allowParry;
-  final Set<HalfACombatRound> discovered;
+  final Set<CombatTurn> discovered;
 
   /// All choices that the [attacker]s [StrategySpace] considers, unordered.
   List<PlayerChoice> get choices =>
@@ -247,7 +247,7 @@ class HalfACombatRound {
   PlayerChoice bestChoice(int depth) {
     assert(
         depth > 0,
-        'if depth == 0 then HalfACombatTurn.payoff should '
+        'if depth == 0 then CombatTurn.payoff should '
         'have calculated the payoff itself');
 
     if (_bestChoice.length < depth) {
@@ -272,7 +272,7 @@ class HalfACombatRound {
 
   @override
   bool operator ==(Object other) =>
-      other is HalfACombatRound &&
+      other is CombatTurn &&
       attacker == other.attacker &&
       defender == other.defender &&
       attackerLostVp == other.attackerLostVp &&

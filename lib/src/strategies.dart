@@ -11,7 +11,7 @@ abstract class StrategySpace {
   /// a maneuver even if it occurs in this list.
   final List<Maneuver> maneuvers;
 
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn);
+  List<PlayerChoice> enumerateChoices(CombatTurn turn);
 }
 
 /// All possible strategies.
@@ -19,7 +19,7 @@ class AllAttacks extends StrategySpace {
   AllAttacks() : super(Maneuver.values);
 
   @override
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
+  List<PlayerChoice> enumerateChoices(CombatTurn turn) {
     final result = <PlayerChoice>[];
 
     for (final maneuver in maneuvers) {
@@ -41,7 +41,7 @@ class NormalAttacks extends StrategySpace {
   NormalAttacks() : super([Maneuver.normalAttack]);
 
   @override
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
+  List<PlayerChoice> enumerateChoices(CombatTurn turn) {
     final result = <PlayerChoice>[];
 
     for (var w = 0; w < turn.attacker.at; w++) {
@@ -68,7 +68,7 @@ class ShortSightedAttacks extends StrategySpace {
       _one400th * (a - w - f) * (p + f) * (s + w);
 
   @override
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) {
+  List<PlayerChoice> enumerateChoices(CombatTurn turn) {
     assert(1 <= turn.attacker.at && turn.attacker.at <= 19);
     assert(1 <= turn.defender.pa && turn.defender.pa <= 19);
     assert(turn.attacker.hp >= turn.defender.ar);
@@ -131,6 +131,6 @@ class StandardAttacks extends StrategySpace {
   StandardAttacks() : super([Maneuver.normalAttack]);
 
   @override
-  List<PlayerChoice> enumerateChoices(HalfACombatRound turn) =>
+  List<PlayerChoice> enumerateChoices(CombatTurn turn) =>
       [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
 }

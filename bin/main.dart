@@ -4,10 +4,7 @@ import 'package:args/args.dart';
 import 'package:tde_sim/tde_sim.dart';
 import 'package:yaml/yaml.dart';
 
-final argParser = new ArgParser()
-  ..addOption('depth', abbr: 'd')
-  ..addOption('parallelism', abbr: 'p', defaultsTo: '1')
-  ..addFlag('verbose', abbr: 'v');
+final argParser = new ArgParser()..addOption('depth', abbr: 'd');
 
 void main(List<String> rawArgs) async {
   final watch = new Stopwatch()..start();
@@ -15,15 +12,7 @@ void main(List<String> rawArgs) async {
   final args = argParser.parse(rawArgs);
   final configFile = args.rest.length == 1 ? args.rest.single : null;
   final depth = args['depth'] != null ? int.tryParse(args['depth']) : null;
-  final parallelism =
-      args['parallelism'] != null ? int.tryParse(args['parallelism']) : null;
-  final verbose = args['verbose'] as bool;
-  if (configFile == null ||
-      depth == null ||
-      depth < 1 ||
-      parallelism == null ||
-      parallelism < 1 ||
-      verbose == null) {
+  if (configFile == null || depth == null || depth < 1) {
     print('usage: dart main.dart [options] <config.yaml>');
     print('options:');
     print(argParser.usage);
@@ -49,7 +38,7 @@ void main(List<String> rawArgs) async {
         pa: hero['pa']));
   }
 
-  final combat = new HalfACombatRound(heroes[0], heroes[0]);
+  final combat = new CombatTurn(heroes[0], heroes[0]);
   var iterationStart = watch.elapsed;
   var alreadyDiscovered = 0;
   var oldDuplicates = 0;
