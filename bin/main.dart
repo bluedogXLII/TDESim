@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:tde_sim/tde_sim.dart';
@@ -42,13 +43,50 @@ void main(List<String> rawArgs) async {
   var iterationStart = watch.elapsed;
   var alreadyDiscovered = 0;
   var oldDuplicates = 0;
+
+  print('attacker: ${combat.attacker}');
+  print('defender: ${combat.defender}');
+
   for (var i = 1; i <= depth; i++) {
-    print(
-        'Payoff of the root node for depth $i: ${combat.payoff(i).toDouble()}');
+    final bestPayoff = combat.bestChoice(i).payoff(i).toDouble();
+    final absMaxPayoff =
+        max(bestPayoff.abs(), combat.worstChoice(i).payoff(i).toDouble().abs());
+    print('========================================');
+    print('========================================');
+    print('Payoff of the root node for depth $i: $bestPayoff');
     print('Calcuating ${combat.discovered.length - alreadyDiscovered} '
         'new states required '
         '${(watch.elapsed - iterationStart).inMilliseconds}ms');
     print('skipped ${duplicates - oldDuplicates} duplicates');
+    print('----------------------------------------');
+    for (var choice in combat.choices) {
+      final currentPayoff = choice.payoff(i).toDouble();
+      print('( ' +
+          choice.maneuver.toString().padLeft(14) +
+          ', ' +
+          choice.forcefulBlow.toString().padLeft(2) +
+          ', ' +
+          choice.feint.toString().padLeft(2) +
+          ' ): ' +
+          currentPayoff.toDouble().toStringAsFixed(3).padLeft(7).padRight(8) +
+          '|'
+              .padLeft(
+                  -(currentPayoff / absMaxPayoff * 30)
+                          .round()
+                          .toInt()
+                          .clamp(-30, 0) +
+                      1,
+                  '-')
+              .padLeft(31)
+              .padRight(
+                  (currentPayoff / absMaxPayoff * 30)
+                          .round()
+                          .toInt()
+                          .clamp(0, 30) +
+                      31,
+                  '-')
+              .padRight(61));
+    }
     alreadyDiscovered = combat.discovered.length;
     iterationStart = watch.elapsed;
     oldDuplicates = duplicates;

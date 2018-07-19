@@ -42,6 +42,10 @@ class Hero {
       @required this.hp,
       @required this.at,
       @required this.pa});
+
+  @override
+  String toString() =>
+      '$name: ( WT: $wt, AR: $ar, HP: $hp, AT: $at, PA: $pa, strategy: $strategySpace )';
 }
 
 class PlayerChoice {
@@ -258,6 +262,23 @@ class CombatTurn {
   }
 
   final List<PlayerChoice> _bestChoice = [];
+
+  /// Returns the worst choice if the combat is fully explored up to [depth]
+  /// additional turns.
+  PlayerChoice worstChoice(int depth) {
+    assert(
+        depth > 0,
+        'if depth == 0 then CombatTurn.payoff should '
+        'have calculated the payoff itself');
+
+    if (_worstChoice.length < depth) {
+      _worstChoice.length = depth;
+    }
+    return _worstChoice[depth - 1] ??=
+        choices.reduce((a, b) => a.payoff(depth) < b.payoff(depth) ? a : b);
+  }
+
+  final List<PlayerChoice> _worstChoice = [];
 
   /// The payoff is the difference between attacker and defender VP if this is a
   /// leaf, or the best payoff of all children if this is an internal node.

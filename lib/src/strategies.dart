@@ -35,6 +35,9 @@ class AllAttacks extends StrategySpace {
     }
     return result;
   }
+
+  @override
+  String toString() => 'AllAttacks';
 }
 
 class NormalAttacks extends StrategySpace {
@@ -52,10 +55,13 @@ class NormalAttacks extends StrategySpace {
 
     return result;
   }
+
+  @override
+  String toString() => 'NormalAttacks';
 }
 
-class ShortSightedAttacks extends StrategySpace {
-  ShortSightedAttacks() : super([Maneuver.normalAttack]);
+class ShortsightedAttacks extends StrategySpace {
+  ShortsightedAttacks() : super([Maneuver.normalAttack]);
 
   final Rational _zero = new Rational.fromInt(0);
   final Rational _one400th = new Rational.fromInt(1, 400);
@@ -125,6 +131,9 @@ class ShortSightedAttacks extends StrategySpace {
 
     return [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)]; // (i, ii)
   }
+
+  @override
+  String toString() => 'ShortsightedAttacks';
 }
 
 class StandardAttacks extends StrategySpace {
@@ -133,4 +142,7 @@ class StandardAttacks extends StrategySpace {
   @override
   List<PlayerChoice> enumerateChoices(CombatTurn turn) =>
       [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
+
+  @override
+  String toString() => 'StandardAttacks';
 }
