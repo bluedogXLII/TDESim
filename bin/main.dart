@@ -31,7 +31,13 @@ void main(List<String> rawArgs) async {
 
   final heroes = <Hero>[];
   for (final hero in config['heroes']) {
-    heroes.add(new Hero(hero['name'], new AllAttacks(),
+    heroes.add(new Hero(hero['name'], new ShorttermAttacks(),
+        wt: hero['wt'],
+        ar: hero['ar'],
+        hp: hero['hp'],
+        at: hero['at'],
+        pa: hero['pa']));
+    heroes.add(new Hero(hero['name'], new NormalAttacks(),
         wt: hero['wt'],
         ar: hero['ar'],
         hp: hero['hp'],
@@ -39,7 +45,7 @@ void main(List<String> rawArgs) async {
         pa: hero['pa']));
   }
 
-  final combat = new CombatTurn(heroes[0], heroes[0]);
+  final combat = new CombatTurn(heroes[0], heroes[1]);
   var iterationStart = watch.elapsed;
   var alreadyDiscovered = 0;
   var oldDuplicates = 0;
@@ -61,14 +67,10 @@ void main(List<String> rawArgs) async {
     print('----------------------------------------');
     for (var choice in combat.choices) {
       final currentPayoff = choice.payoff(i).toDouble();
-      print('( ' +
-          choice.maneuver.toString().padLeft(14) +
-          ', ' +
-          choice.forcefulBlow.toString().padLeft(2) +
-          ', ' +
-          choice.feint.toString().padLeft(2) +
-          ' ): ' +
-          currentPayoff.toDouble().toStringAsFixed(3).padLeft(7).padRight(8) +
+      print('( ${choice.maneuver.toString().padLeft(14)}, '
+          '${choice.forcefulBlow.toString().padLeft(2)}, '
+          '${choice.feint.toString().padLeft(2)} ): '
+          '${currentPayoff.toDouble().toStringAsFixed(3).padLeft(7).padRight(8)}' +
           '|'
               .padLeft(
                   -(currentPayoff / absMaxPayoff * 30)

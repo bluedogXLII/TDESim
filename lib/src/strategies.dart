@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:rational/rational.dart';
 
 import 'maneuvers.dart';
@@ -49,7 +50,7 @@ class NormalAttacks extends StrategySpace {
 
     for (var w = 0; w < turn.attacker.at; w++) {
       for (var f = 0; f < turn.attacker.at - w; f++) {
-        result.add(new PlayerChoice(turn, Maneuver.normalAttack, f, w));
+        result.add(new PlayerChoice(turn, Maneuver.normalAttack, w, f));
       }
     }
 
@@ -60,8 +61,8 @@ class NormalAttacks extends StrategySpace {
   String toString() => 'NormalAttacks';
 }
 
-class ShortsightedAttacks extends StrategySpace {
-  ShortsightedAttacks() : super([Maneuver.normalAttack]);
+class ShorttermAttacks extends StrategySpace {
+  ShorttermAttacks() : super([Maneuver.normalAttack]);
 
   final Rational _zero = new Rational.fromInt(0);
   final Rational _one400th = new Rational.fromInt(1, 400);
@@ -89,12 +90,12 @@ class ShortsightedAttacks extends StrategySpace {
     if (_zero <= w && _zero <= f && f <= _nineteen - p) {
       var expectedMax = _zero;
       int intW, intF;
-      for (var wTemp in [w.floor().toInt(), w.ceil().toInt()]) {
-        for (var fTemp in [f.floor().toInt(), f.ceil().toInt()]) {
-          if (expectedMaxFunction(a, p, s, w, f) > expectedMax) {
-            intW = wTemp;
-            intF = fTemp;
-            expectedMax = expectedMaxFunction(a, p, s, w, f);
+      for (var wTemp in [w.floor(), w.ceil()]) {
+        for (var fTemp in [f.floor(), f.ceil()]) {
+          if (expectedMaxFunction(a, p, s, wTemp, fTemp) > expectedMax) {
+            intW = wTemp.toInt();
+            intF = fTemp.toInt();
+            expectedMax = expectedMaxFunction(a, p, s, wTemp, fTemp);
           }
         }
       }
@@ -133,16 +134,33 @@ class ShortsightedAttacks extends StrategySpace {
   }
 
   @override
-  String toString() => 'ShortsightedAttacks';
+  String toString() => 'ShorttermAttacks';
 }
 
-class StandardAttacks extends StrategySpace {
-  StandardAttacks() : super([Maneuver.normalAttack]);
+class ZeroAttacks extends StrategySpace {
+  ZeroAttacks() : super([Maneuver.normalAttack]);
 
   @override
   List<PlayerChoice> enumerateChoices(CombatTurn turn) =>
       [new PlayerChoice(turn, Maneuver.normalAttack, 0, 0)];
 
   @override
-  String toString() => 'StandardAttacks';
+  String toString() => 'ZeroAttacks';
+}
+
+class RandomAttacks extends StrategySpace {
+  RandomAttacks() : super([Maneuver.normalAttack]);
+
+  final rng = new Random();
+
+  @override
+  List<PlayerChoice> enumerateChoices(CombatTurn turn) {
+    final sum = rng.nextInt(turn.attacker.at - 1);
+    final w = sum == 0 ? 0 : rng.nextInt(sum);
+    final f = sum - w;
+    return [new PlayerChoice(turn, Maneuver.normalAttack, w, f)];
+  }
+
+  @override
+  String toString() => 'ZeroAttacks';
 }

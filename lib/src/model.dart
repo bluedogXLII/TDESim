@@ -49,7 +49,7 @@ class Hero {
 }
 
 class PlayerChoice {
-  PlayerChoice(this.turn, this.maneuver, this.feint, this.forcefulBlow);
+  PlayerChoice(this.turn, this.maneuver, this.forcefulBlow, this.feint);
 
   final CombatTurn turn;
   final Maneuver maneuver;
@@ -285,7 +285,7 @@ class CombatTurn {
   /// A positive Payoff benefits the attacker of the current round.
   Rational payoff(int depth) {
     if (depth == 0) {
-      return new Rational.fromInt(attackerLostVp - defenderLostVp);
+      return new Rational.fromInt(defenderLostVp - attackerLostVp);
     } else {
       return bestChoice(depth).payoff(depth);
     }
