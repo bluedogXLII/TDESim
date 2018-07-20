@@ -1,0 +1,109 @@
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: AllAttacks )
+defender: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 2.1525 for maneuver: Hammer Blow, forcefulBlow: 0, feint: 4
+========================================
+========================================
+Payoff of the root node for depth 2: -1.57775 for maneuver: Normal Attack, forcefulBlow: 1, feint: 1
+========================================
+========================================
+Payoff of the root node for depth 3: 2.29560078125 for maneuver: Normal Attack, forcefulBlow: 2, feint: 2
+========================================
+========================================
+Payoff of the root node for depth 4: -1.5825914407552084 for maneuver: Normal Attack, forcefulBlow: 2, feint: 2
+total program runtime: 0:57:25.679969
+Exited
+-
+-
+-
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: NormalAttacks )
+defender: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 1.36 for maneuver: Normal Attack, forcefulBlow: 5, feint: 5
+Calcuating 42 new states required 95ms
+skipped 1327 duplicates
+========================================
+========================================
+Payoff of the root node for depth 2: -0.6217083333333333 for maneuver: Normal Attack, forcefulBlow: 2, feint: 2
+Calcuating 983 new states required 607ms
+skipped 55105 duplicates
+========================================
+========================================
+Payoff of the root node for depth 3: 1.3303654861111112 for maneuver: Normal Attack, forcefulBlow: 2, feint: 2
+Calcuating 11551 new states required 14816ms
+skipped 1333193 duplicates
+========================================
+========================================
+Payoff of the root node for depth 4: -0.6181911989293981 for maneuver: Normal Attack, forcefulBlow: 2, feint: 2
+Calcuating 35241 new states required 185252ms
+skipped 15766527 duplicates
+total program runtime: 0:03:20.877999
+Exited
+-
+-
+-
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: AllAttacks )
+defender: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 4.77 for maneuver: Hammer Blow, forcefulBlow: 1, feint: 1
+========================================
+========================================
+Payoff of the root node for depth 2: 2.7169375 for maneuver: Hammer Blow, forcefulBlow: 0, feint: 1
+========================================
+========================================
+Payoff of the root node for depth 3: 9.671078125 for maneuver: Hammer Blow, forcefulBlow: 0, feint: 1
+Exited (sigterm)
+-
+-
+-
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: NormalAttacks )
+defender: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 3.17625 for maneuver: Normal Attack, forcefulBlow: 4, feint: 3
+========================================
+========================================
+Payoff of the root node for depth 2: 2.645375 for maneuver: Normal Attack, forcefulBlow: 4, feint: 2
+========================================
+========================================
+Payoff of the root node for depth 3: 6.495825 for maneuver: Normal Attack, forcefulBlow: 4, feint: 2
+========================================
+========================================
+Payoff of the root node for depth 4: 6.0485920972222225 for maneuver: Normal Attack, forcefulBlow: 4, feint: 3
+total program runtime: 0:01:00.882560
+Exited
+-
+-
+-
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: AllAttacks )
+defender: Rumpo: ( WT: 3, AR: 0, HP: 3, AT: 5, PA: 4, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 10.26 for maneuver: Hammer Blow, forcefulBlow: 1, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: 9.825 for maneuver: Hammer Blow, forcefulBlow: 1, feint: 0
+total program runtime: 0:00:00.373980
+Exited
+-
+-
+-
+attacker: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: NormalAttacks )
+defender: Rumpo: ( WT: 3, AR: 0, HP: 3, AT: 5, PA: 4, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 7.02 for maneuver: Normal Attack, forcefulBlow: 5, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: 6.9128625 for maneuver: Normal Attack, forcefulBlow: 5, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 3: 14.6794 for maneuver: Normal Attack, forcefulBlow: 4, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 4: 14.5943195 for maneuver: Normal Attack, forcefulBlow: 4, feint: 0
+total program runtime: 0:00:12.859687
+Exited

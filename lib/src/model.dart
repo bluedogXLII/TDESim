@@ -204,7 +204,7 @@ class PlayerChoice {
 
   @override
   String toString() =>
-      'maneuver: $maneuver, feint: $feint, forcefulBlow: $forcefulBlow';
+      'maneuver: $maneuver, forcefulBlow: $forcefulBlow, feint: $feint';
 }
 
 class CombatTurn {

@@ -1,0 +1,99 @@
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: AllAttacks )
+defender: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 0.345 for maneuver: Hammer Blow, forcefulBlow: 0, feint: 1
+========================================
+========================================
+Payoff of the root node for depth 2: -4.68 for maneuver: Normal Attack, forcefulBlow: 0, feint: 0
+total program runtime: 0:00:01.363364
+Exited
+-
+-
+-
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: NormalAttacks )
+defender: Rondriane: ( WT: 8, AR: 5, HP: 5, AT: 18, PA: 17, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 0.34375 for maneuver: Normal Attack, forcefulBlow: 5, feint: 2
+========================================
+========================================
+Payoff of the root node for depth 2: -3.08625 for maneuver: Normal Attack, forcefulBlow: 0, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 3: -2.555375 for maneuver: Normal Attack, forcefulBlow: 0, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 4: -6.405825 for maneuver: Normal Attack, forcefulBlow: 0, feint: 0
+total program runtime: 0:01:24.561023
+Exited
+-
+-
+-
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: AllAttacks )
+defender: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 1.2 for maneuver: Normal Attack, forcefulBlow: 4, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: -0.21133333333333335 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 3: 1.2394722222222223 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 4: -0.17059957523148148 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+total program runtime: 0:05:11.080242
+Exited
+-
+-
+-
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: NormalAttacks )
+defender: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 1.2 for maneuver: Normal Attack, forcefulBlow: 4, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: -0.21133333333333335 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 3: 1.2394722222222223 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 4: -0.17059957523148148 for maneuver: Normal Attack, forcefulBlow: 2, feint: 0
+total program runtime: 0:00:36.638793
+Exited
+-
+-
+-
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: AllAttacks )
+defender: Rumpo: ( WT: 3, AR: 0, HP: 3, AT: 5, PA: 4, strategy: AllAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 3.06 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: 2.6179875 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+total program runtime: 0:00:00.322532
+Exited
+-
+-
+-
+attacker: Alrik: ( WT: 5, AR: 2, HP: 2, AT: 12, PA: 12, strategy: NormalAttacks )
+defender: Rumpo: ( WT: 3, AR: 0, HP: 3, AT: 5, PA: 4, strategy: NormalAttacks )
+========================================
+========================================
+Payoff of the root node for depth 1: 3.06 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 2: 2.6179875 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 3: 5.84931525 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+========================================
+========================================
+Payoff of the root node for depth 4: 5.488796345572917 for maneuver: Normal Attack, forcefulBlow: 3, feint: 0
+total program runtime: 0:00:06.856668
+Exited

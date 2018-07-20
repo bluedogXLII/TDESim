@@ -78,7 +78,7 @@ class ShorttermAttacks extends StrategySpace {
   List<PlayerChoice> enumerateChoices(CombatTurn turn) {
     assert(1 <= turn.attacker.at && turn.attacker.at <= 19);
     assert(1 <= turn.defender.pa && turn.defender.pa <= 19);
-    assert(turn.attacker.hp >= turn.defender.ar);
+    //assert(turn.attacker.hp >= turn.defender.ar);
 
     final a = new Rational.fromInt(turn.attacker.at);
     final p = new Rational.fromInt(20 - turn.defender.pa);
